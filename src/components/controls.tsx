@@ -9,18 +9,9 @@ function applyFocusRing(el: HTMLButtonElement) {
   el.style.outline = 'var(--outline-width) solid var(--color-accent)';
   el.style.outlineOffset = 'var(--outline-offset)';
 }
-
-function clearFocusRing(el: HTMLButtonElement) {
-  el.style.outline = 'none';
-}
-
-function pressDown(el: HTMLButtonElement) {
-  el.style.transform = 'scale(0.98)';
-}
-
-function pressUp(el: HTMLButtonElement) {
-  el.style.transform = 'scale(1)';
-}
+function clearFocusRing(el: HTMLButtonElement) { el.style.outline = 'none'; }
+function pressDown(el: HTMLButtonElement) { el.style.transform = 'scale(0.98)'; }
+function pressUp(el: HTMLButtonElement)   { el.style.transform = 'scale(1)'; }
 
 export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsProps) {
   return (
@@ -29,6 +20,7 @@ export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsPro
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        // Fixed gap so Reset slot always exists — no layout shift
         gap: 'var(--space-3)',
       }}
     >
@@ -38,11 +30,11 @@ export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsPro
         aria-label={isRunning ? 'Pause timer' : 'Start timer'}
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: 'var(--text-base)',
+          fontSize: 'var(--text-sm)',
           fontWeight: 500,
-          letterSpacing: 'var(--tracking-wide)',
+          letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          padding: 'var(--space-3) var(--space-8)',
+          padding: '10px 28px',
           borderRadius: 'var(--radius-full)',
           border: 'none',
           cursor: 'pointer',
@@ -64,47 +56,46 @@ export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsPro
         {isRunning ? 'Pause' : 'Start'}
       </button>
 
-      {/* Reset — ghost, only visible when relevant */}
-      {canReset && (
-        <button
-          onClick={onReset}
-          aria-label="Reset timer"
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 'var(--text-sm)',
-            fontWeight: 400,
-            letterSpacing: 'var(--tracking-wide)',
-            textTransform: 'uppercase',
-            padding: 'var(--space-2) var(--space-4)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--color-muted)',
-            transition: [
-              'color var(--dur-normal) var(--ease)',
-              'transform var(--dur-fast) var(--ease)',
-            ].join(', '),
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-fg)';
-          }}
-          onMouseLeave={e => {
-            const btn = e.currentTarget as HTMLButtonElement;
-            btn.style.color = 'var(--color-muted)';
-            pressUp(btn);
-          }}
-          onMouseDown={e => pressDown(e.currentTarget as HTMLButtonElement)}
-          onMouseUp={e => pressUp(e.currentTarget as HTMLButtonElement)}
-          onFocus={e => {
-            const btn = e.currentTarget as HTMLButtonElement;
-            applyFocusRing(btn);
-            btn.style.borderRadius = 'var(--radius-sm)';
-          }}
-          onBlur={e => clearFocusRing(e.currentTarget as HTMLButtonElement)}
-        >
-          Reset
-        </button>
-      )}
+      {/* Reset — always in the DOM, invisible when not needed. No layout shift. */}
+      <button
+        onClick={canReset ? onReset : undefined}
+        aria-label="Reset timer"
+        tabIndex={canReset ? 0 : -1}
+        style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 'var(--text-xs)',
+          fontWeight: 400,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          padding: '6px var(--space-4)',
+          background: 'none',
+          border: 'none',
+          cursor: canReset ? 'pointer' : 'default',
+          color: 'var(--color-muted)',
+          opacity: canReset ? 1 : 0,
+          pointerEvents: canReset ? 'auto' : 'none',
+          transition: [
+            'opacity var(--dur-normal) var(--ease)',
+            'color var(--dur-normal) var(--ease)',
+            'transform var(--dur-fast) var(--ease)',
+          ].join(', '),
+          outline: 'none',
+        }}
+        onMouseEnter={e => {
+          if (canReset) (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-fg)';
+        }}
+        onMouseLeave={e => {
+          const btn = e.currentTarget as HTMLButtonElement;
+          btn.style.color = 'var(--color-muted)';
+          pressUp(btn);
+        }}
+        onMouseDown={e => { if (canReset) pressDown(e.currentTarget as HTMLButtonElement); }}
+        onMouseUp={e => pressUp(e.currentTarget as HTMLButtonElement)}
+        onFocus={e => { if (canReset) applyFocusRing(e.currentTarget as HTMLButtonElement); }}
+        onBlur={e => clearFocusRing(e.currentTarget as HTMLButtonElement)}
+      >
+        Reset
+      </button>
     </div>
   );
 }

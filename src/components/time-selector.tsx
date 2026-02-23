@@ -1,18 +1,25 @@
-interface TimeSelectorProps {
+interface Option<T> {
+  value: T;
+  label: string;   // display text
+}
+
+interface TimeSelectorProps<T extends string | number> {
   label: string;
-  options: readonly number[];
-  selected: number;
-  onChange: (value: number) => void;
+  options: readonly Option<T>[];
+  selected: T;
+  onChange: (value: T) => void;
+  unit?: string;   // e.g. "min" — omit for label-only options
   disabled?: boolean;
 }
 
-export function TimeSelector({
+export function TimeSelector<T extends string | number>({
   label,
   options,
   selected,
   onChange,
+  unit,
   disabled = false,
-}: TimeSelectorProps) {
+}: TimeSelectorProps<T>) {
   return (
     <div
       style={{
@@ -25,7 +32,7 @@ export function TimeSelector({
         transition: 'opacity var(--dur-normal) var(--ease)',
       }}
     >
-      {/* Label */}
+      {/* Section label */}
       <span
         style={{
           fontFamily: 'var(--font-sans)',
@@ -52,16 +59,16 @@ export function TimeSelector({
           gap: 'var(--inset-pill)',
         }}
         role="group"
-        aria-label={`${label} duration`}
+        aria-label={`${label} selection`}
       >
-        {options.map(option => {
-          const isActive = option === selected;
+        {options.map(opt => {
+          const isActive = opt.value === selected;
           return (
             <button
-              key={option}
-              onClick={() => onChange(option)}
+              key={String(opt.value)}
+              onClick={() => onChange(opt.value)}
               aria-pressed={isActive}
-              aria-label={`${option} minutes`}
+              aria-label={unit ? `${opt.label} ${unit}` : opt.label}
               style={{
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-sm)',
@@ -82,16 +89,15 @@ export function TimeSelector({
                 whiteSpace: 'nowrap',
                 minWidth: 'var(--min-segment-width)',
                 textAlign: 'center',
+                outline: 'none',
               }}
               onMouseEnter={e => {
-                if (!isActive) {
+                if (!isActive)
                   (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-fg)';
-                }
               }}
               onMouseLeave={e => {
-                if (!isActive) {
+                if (!isActive)
                   (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)';
-                }
               }}
               onFocus={e => {
                 const btn = e.currentTarget as HTMLButtonElement;
@@ -102,24 +108,26 @@ export function TimeSelector({
                 (e.currentTarget as HTMLButtonElement).style.outline = 'none';
               }}
             >
-              {option}
+              {opt.label}
             </button>
           );
         })}
       </div>
 
-      {/* Unit label */}
-      <span
-        style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 'var(--text-xs)',
-          color: 'var(--color-muted)',
-          letterSpacing: 'var(--tracking)',
-          lineHeight: 1,
-        }}
-      >
-        min
-      </span>
+      {/* Unit label — only rendered when provided */}
+      {unit && (
+        <span
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 'var(--text-xs)',
+            color: 'var(--color-muted)',
+            letterSpacing: 'var(--tracking)',
+            lineHeight: 1,
+          }}
+        >
+          {unit}
+        </span>
+      )}
     </div>
   );
 }

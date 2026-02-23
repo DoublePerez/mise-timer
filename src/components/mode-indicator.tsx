@@ -1,27 +1,25 @@
-import type { Mode } from '@/lib/types';
-
 interface ModeIndicatorProps {
-  currentMode: Mode;
+  label: string;
 }
 
-export function ModeIndicator({ currentMode }: ModeIndicatorProps) {
+export function ModeIndicator({ label }: ModeIndicatorProps) {
   return (
     <span
       style={{
         fontFamily: 'var(--font-sans)',
         fontSize: 'var(--text-xs)',
         fontWeight: 400,
-        letterSpacing: 'var(--tracking-wide)',
+        letterSpacing: '0.12em',
         textTransform: 'uppercase',
-        color: 'var(--color-accent)',
+        color: 'var(--color-muted)',
         lineHeight: 1,
-        transition: 'color var(--dur-normal) var(--ease)',
+        transition: 'color var(--dur-slow) var(--ease)',
         userSelect: 'none',
       }}
       aria-live="polite"
-      aria-label={`Current mode: ${currentMode}`}
+      aria-label={`Current mode: ${label}`}
     >
-      {currentMode === 'work' ? 'Work' : 'Break'}
+      {label}
     </span>
   );
 }

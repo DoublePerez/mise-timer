@@ -11,51 +11,83 @@ import { minutesToSeconds } from '@/lib/utils';
 
 type BreakKind = 'short' | 'long';
 
-// ── Custom work timer — plain countdown, any duration ────────────────
-export function useCustomWorkTimer(minutes: number) {
-  const total = minutesToSeconds(minutes);
-  const [timeRemaining, setTimeRemaining] = useState(total);
+// ── Custom work timer — work/break cycles with configurable rounds ────
+export function useCustomWorkTimer(
+  workMinutes: number,
+  breakMinutes: BreakDuration,
+  rounds: DeepWorkRounds,
+) {
+  const [timeRemaining, setTimeRemaining] = useState(minutesToSeconds(workMinutes));
   const [isRunning, setIsRunning] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
+  const [currentMode, setCurrentMode] = useState<Mode>('work');
+  const [roundsCompleted, setRoundsCompleted] = useState(0);
 
+  // Reset when any config changes
   useEffect(() => {
-    const t = minutesToSeconds(minutes);
-    setTimeRemaining(t);
+    setTimeRemaining(minutesToSeconds(workMinutes));
     setIsRunning(false);
-    setIsComplete(false);
-  }, [minutes]);
+    setCurrentMode('work');
+    setRoundsCompleted(0);
+  }, [workMinutes, breakMinutes, rounds]);
+
+  const handleTimerComplete = useCallback(() => {
+    setIsRunning(false);
+    if (currentMode === 'work') {
+      setRoundsCompleted(prev => {
+        const next = prev + 1;
+        if (next >= rounds) {
+          // All rounds done — reset cycle
+          setTimeout(() => setRoundsCompleted(0), 800);
+          return next;
+        }
+        return next;
+      });
+      setTimeRemaining(minutesToSeconds(breakMinutes));
+      setCurrentMode('break');
+    } else {
+      setTimeRemaining(minutesToSeconds(workMinutes));
+      setCurrentMode('work');
+    }
+  }, [currentMode, workMinutes, breakMinutes, rounds]);
 
   useEffect(() => {
-    if (!isRunning || isComplete) return;
+    if (!isRunning) return;
     const id = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
-          setIsRunning(false);
-          setIsComplete(true);
+          handleTimerComplete();
           return 0;
         }
         return prev - 1;
       });
     }, TICK_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [isRunning, isComplete]);
+  }, [isRunning, handleTimerComplete]);
 
-  const toggle = useCallback(() => { if (!isComplete) setIsRunning(r => !r); }, [isComplete]);
+  const toggle = useCallback(() => setIsRunning(r => !r), []);
+  const skip   = useCallback(() => { handleTimerComplete(); }, [handleTimerComplete]);
   const reset  = useCallback(() => {
     setIsRunning(false);
-    setIsComplete(false);
-    setTimeRemaining(minutesToSeconds(minutes));
-  }, [minutes]);
+    setCurrentMode('work');
+    setRoundsCompleted(0);
+    setTimeRemaining(minutesToSeconds(workMinutes));
+  }, [workMinutes]);
+
+  const totalDuration = currentMode === 'work'
+    ? minutesToSeconds(workMinutes)
+    : minutesToSeconds(breakMinutes);
 
   return {
     timeRemaining,
     isRunning,
-    isComplete,
-    canReset: timeRemaining !== total || isComplete,
-    toggle,
-    reset,
-    currentMode: 'work' as Mode,
+    currentMode,
     breakKind: 'short' as BreakKind,
+    roundsCompleted,
+    totalDuration,
+    canReset: timeRemaining !== minutesToSeconds(workMinutes) || currentMode !== 'work' || roundsCompleted > 0,
+    toggle,
+    skip,
+    reset,
   } as const;
 }
 
@@ -168,6 +200,11 @@ export function usePomodoro(
     setIsRunning(r => !r);
   }, []);
 
+  // Skip — immediately triggers the same logic as timer completion
+  const skip = useCallback(() => {
+    handleTimerComplete();
+  }, [handleTimerComplete]);
+
   const reset = useCallback(() => {
     setIsRunning(false);
     setCurrentMode('work');
@@ -215,6 +252,7 @@ export function usePomodoro(
     roundsCompleted,
     canReset,
     toggle,
+    skip,
     reset,
     setWorkDuration,
     setBreakDuration,

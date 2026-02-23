@@ -37,11 +37,18 @@ interface SettingsPanelProps {
   // Custom work
   customWorkName: string;
   customWorkMinutes: number;
+  customBreakDuration: BreakDuration;
+  customRounds: DeepWorkRounds;
   onCustomWorkNameChange: (n: string) => void;
   onCustomWorkMinutesChange: (m: number) => void;
+  onCustomBreakDurationChange: (d: BreakDuration) => void;
+  onCustomRoundsChange: (r: DeepWorkRounds) => void;
   // Custom cook — multi-stage
   customCookStages: Phase[];
   onCustomCookStagesChange: (stages: Phase[]) => void;
+  // Dashboard
+  dailySessions: number;
+  weekHistory: number[]; // 7 values, index 0 = 6 days ago, index 6 = today
 }
 
 // ── Info tooltip — (i) icon that reveals a hover popover ─────────────
@@ -284,6 +291,10 @@ function CustomWorkRow({
             const v = parseInt(e.target.value, 10);
             if (!isNaN(v) && v >= 1) onMinutesChange(v);
           }}
+          onBlur={e => {
+            const v = parseInt(e.target.value, 10);
+            if (isNaN(v) || v < 1) onMinutesChange(1);
+          }}
           style={{ ...inputStyle, width: 44, textAlign: 'center', padding: 'var(--space-2) var(--space-1)' }}
           aria-label="Custom timer minutes"
         />
@@ -450,8 +461,11 @@ export function SettingsPanel({
   onWorkDurationChange, onBreakDurationChange, onDeepWorkRoundsChange,
   pastaVariant, eggVariant, sauceVariant,
   onPastaVariantChange, onEggVariantChange, onSauceVariantChange,
-  customWorkName, customWorkMinutes, onCustomWorkNameChange, onCustomWorkMinutesChange,
+  customWorkName, customWorkMinutes, customBreakDuration, customRounds,
+  onCustomWorkNameChange, onCustomWorkMinutesChange,
+  onCustomBreakDurationChange, onCustomRoundsChange,
   customCookStages, onCustomCookStagesChange,
+  dailySessions, weekHistory,
 }: SettingsPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -669,12 +683,27 @@ export function SettingsPanel({
         {context === 'work' && workMode === 'custom' && (
           <>
             <Divider />
-            <CustomWorkRow
-              name={customWorkName}
-              minutes={customWorkMinutes}
-              onNameChange={onCustomWorkNameChange}
-              onMinutesChange={onCustomWorkMinutesChange}
-            />
+            <Group>
+              <CustomWorkRow
+                name={customWorkName}
+                minutes={customWorkMinutes}
+                onNameChange={onCustomWorkNameChange}
+                onMinutesChange={onCustomWorkMinutesChange}
+              />
+              <SegRow
+                label="Break"
+                options={numOpts(BREAK_DURATIONS)}
+                selected={customBreakDuration}
+                onChange={v => onCustomBreakDurationChange(v as BreakDuration)}
+                unit="min"
+              />
+              <SegRow
+                label="Rounds"
+                options={numOpts(DEEP_WORK_ROUNDS)}
+                selected={customRounds}
+                onChange={v => onCustomRoundsChange(v as DeepWorkRounds)}
+              />
+            </Group>
           </>
         )}
         {context === 'cook' && cookMode === 'pasta' && (
@@ -730,8 +759,104 @@ export function SettingsPanel({
             />
           </>
         )}
+
+        {/* Dashboard — always visible at the bottom */}
+        <Divider />
+        <Dashboard dailySessions={dailySessions} weekHistory={weekHistory} />
       </div>
     </>
+  );
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────
+const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+function Dashboard({ dailySessions, weekHistory }: { dailySessions: number; weekHistory: number[] }) {
+  const maxSessions = Math.max(...weekHistory, 1);
+  const todayDow = new Date().getDay(); // 0=Sun
+  // Reorder day labels so index 6 = today
+  const dowOffset = (todayDow + 6) % 7; // Mon=0 offset
+  const dayLabels = Array.from({ length: 7 }, (_, i) => {
+    const dow = (dowOffset - 6 + i + 7) % 7;
+    return DAY_LABELS[dow];
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+      {/* Section label */}
+      <span style={{
+        fontFamily: 'var(--font-sans)',
+        fontSize: 'var(--text-xs)',
+        fontWeight: 400,
+        letterSpacing: '0.02em',
+        color: 'var(--color-muted)',
+        lineHeight: 1,
+      }}>
+        Today
+      </span>
+
+      {/* Tomato circles — today's sessions */}
+      <div style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap', minHeight: 12 }}>
+        {dailySessions === 0 ? (
+          <span style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 'var(--text-xs)',
+            color: 'var(--color-border)',
+            letterSpacing: 'var(--tracking)',
+            lineHeight: 1,
+          }}>
+            No sessions yet
+          </span>
+        ) : (
+          Array.from({ length: dailySessions }).map((_, i) => (
+            <span
+              key={i}
+              aria-hidden="true"
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 'var(--radius-full)',
+                background: 'var(--color-accent)',
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+          ))
+        )}
+      </div>
+
+      {/* 7-day bar calendar */}
+      <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 28 }}>
+        {weekHistory.map((count, i) => {
+          const isToday = i === 6;
+          const heightPct = count / maxSessions;
+          const barH = Math.max(3, Math.round(heightPct * 24));
+          return (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+              <div style={{
+                width: '100%',
+                height: barH,
+                borderRadius: 2,
+                background: isToday
+                  ? (count > 0 ? 'var(--color-accent)' : 'var(--color-border)')
+                  : (count > 0 ? 'var(--color-muted)' : 'var(--color-border)'),
+                opacity: isToday ? 1 : 0.6,
+                transition: 'height var(--dur-normal) var(--ease)',
+              }} />
+              <span style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 8,
+                color: isToday ? 'var(--color-muted-strong)' : 'var(--color-border)',
+                lineHeight: 1,
+                userSelect: 'none',
+              }}>
+                {dayLabels[i]}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

@@ -55,14 +55,14 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--space-2)',
+        alignItems: 'center',
+        gap: 'var(--space-3)',
         width: '100%',
       }}
     >
       {phases.map((phase, i) => {
         const isActive = !isComplete && i === currentPhaseIndex;
         const isDone   = isComplete || i < currentPhaseIndex;
-        // Active phase: show live countdown; others: show total duration
         const displayTime = isActive && timeRemaining !== undefined
           ? formatTime(timeRemaining)
           : formatTime(phase.seconds);
@@ -73,8 +73,9 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
             style={{
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: 'var(--space-3)',
-              opacity: isDone ? 0.35 : 1,
+              opacity: isDone ? 0.3 : 1,
               transition: 'opacity var(--dur-normal) var(--ease)',
             }}
           >
@@ -82,8 +83,8 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
             <span
               aria-hidden="true"
               style={{
-                width: 5,
-                height: 5,
+                width: 4,
+                height: 4,
                 borderRadius: 'var(--radius-full)',
                 flexShrink: 0,
                 background: isActive
@@ -103,7 +104,6 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
                 fontWeight: isActive ? 500 : 400,
                 letterSpacing: 'var(--tracking)',
                 color: isActive ? 'var(--color-fg)' : 'var(--color-muted)',
-                flex: 1,
                 transition: 'color var(--dur-normal) var(--ease)',
               }}
             >
@@ -116,7 +116,7 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
                 fontFamily: 'var(--font-mono)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking)',
-                color: isActive ? 'var(--color-fg)' : 'var(--color-muted)',
+                color: isActive ? 'var(--color-muted-strong)' : 'var(--color-border)',
                 fontVariantNumeric: 'tabular-nums',
                 transition: 'color var(--dur-normal) var(--ease)',
               }}

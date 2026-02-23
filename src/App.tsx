@@ -1,6 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { TimerContext, WorkMode, CookMode, WorkDuration, BreakDuration, DeepWorkRounds } from '@/lib/types';
-import { DEFAULT_DEEP_WORK_ROUNDS, PASTA_VARIANTS, EGG_VARIANTS, SAUCE_VARIANTS } from '@/lib/constants';
+import { DEFAULT_DEEP_WORK_ROUNDS, PASTA_VARIANTS, EGG_VARIANTS } from '@/lib/constants';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useKeyboard } from '@/hooks/use-keyboard';
+import { getNarrativeLabel } from '@/lib/narrative';
 import { usePomodoro, useCustomWorkTimer } from '@/hooks/use-pomodoro';
 import { useCookTimer } from '@/hooks/use-cook-timer';
 import { TimerDisplay } from '@/components/timer-display';
@@ -12,34 +15,84 @@ import { SettingsPanel, SlidersIcon } from '@/components/settings-panel';
 type Theme = 'dark' | 'light';
 
 function App() {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useLocalStorage<Theme>('pomo:theme', 'dark');
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [context, setContext] = useState<TimerContext>('work');
-  const [workMode, setWorkMode] = useState<WorkMode>('pomodoro');
-  const [cookMode, setCookModeLocal] = useState<CookMode>('pasta');
-  const [deepWorkRounds, setDeepWorkRounds] = useState<DeepWorkRounds>(DEFAULT_DEEP_WORK_ROUNDS);
-  const [customWorkName, setCustomWorkName] = useState('Custom');
-  const [customWorkMinutes, setCustomWorkMinutes] = useState(25);
+  const [context, setContext] = useLocalStorage<TimerContext>('pomo:context', 'work');
+  const [workMode, setWorkMode] = useLocalStorage<WorkMode>('pomo:workMode', 'pomodoro');
+  const [cookMode, setCookModeLocal] = useLocalStorage<CookMode>('pomo:cookMode', 'pasta');
+  const [deepWorkRounds, setDeepWorkRounds] = useLocalStorage<DeepWorkRounds>('pomo:deepWorkRounds', DEFAULT_DEEP_WORK_ROUNDS);
+  const [customWorkName, setCustomWorkName] = useLocalStorage<string>('pomo:customWorkName', 'Custom');
+  const [customWorkMinutes, setCustomWorkMinutes] = useLocalStorage<number>('pomo:customWorkMinutes', 25);
+  const [customBreakDuration, setCustomBreakDuration] = useLocalStorage<BreakDuration>('pomo:customBreakDuration', 5);
+  const [customRounds, setCustomRounds] = useLocalStorage<DeepWorkRounds>('pomo:customRounds', 3);
+
+  // Daily session counter — resets at midnight via date-keyed storage
+  const todayKey = `pomo:sessions:${new Date().toISOString().slice(0, 10)}`;
+  const [dailySessions, setDailySessions] = useLocalStorage<number>(todayKey, 0);
+
+  // 7-day history — read directly from localStorage (past 7 days including today)
+  const weekHistory = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const key = `pomo:sessions:${d.toISOString().slice(0, 10)}`;
+    try { return Number(JSON.parse(localStorage.getItem(key) ?? '0')); }
+    catch { return 0; }
+  });
 
   const pomodoro   = usePomodoro(workMode, deepWorkRounds);
-  const customWork = useCustomWorkTimer(customWorkMinutes);
+  const customWork = useCustomWorkTimer(customWorkMinutes, customBreakDuration, customRounds);
   const cook = useCookTimer();
+
+  // Detect when a work session completes — increment daily counter.
+  // We track the previous sessionsCompleted value; when it increases (or wraps
+  // back to 0 after a long-break cycle) a session fired.
+  const prevPomoSessions = useRef(pomodoro.sessionsCompleted);
+  const prevCustomRounds = useRef(customWork.roundsCompleted);
+
+  useEffect(() => {
+    const prev = prevPomoSessions.current;
+    const curr = pomodoro.sessionsCompleted;
+    // An increment OR a wrap-back (long break reset to 0 after max sessions)
+    if (
+      context === 'work' &&
+      workMode !== 'custom' &&
+      pomodoro.currentMode === 'break' &&
+      (curr > prev || (prev > 0 && curr === 0))
+    ) {
+      setDailySessions(n => n + 1);
+    }
+    prevPomoSessions.current = curr;
+  }, [pomodoro.sessionsCompleted, pomodoro.currentMode, context, workMode, setDailySessions]);
+
+  useEffect(() => {
+    const prev = prevCustomRounds.current;
+    const curr = customWork.roundsCompleted;
+    if (context === 'work' && workMode === 'custom' && customWork.currentMode === 'break' && curr > prev) {
+      setDailySessions(n => n + 1);
+    }
+    prevCustomRounds.current = curr;
+  }, [customWork.roundsCompleted, customWork.currentMode, context, workMode, setDailySessions]);
 
   const toggleTheme = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'));
   const openSettings  = () => setSettingsOpen(true);
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
 
   // CSS accent driven by data-mode attribute
-  const dataMode = context === 'work' ? pomodoro.currentMode : 'work';
+  const dataMode = context === 'work' ? (workMode === 'custom' ? customWork.currentMode : pomodoro.currentMode) : 'work';
+
+  // Narrative label — escalates with daily sessions, shown during work phase only
+  const narrativeLabel = getNarrativeLabel(dailySessions);
+  const narrativeSuffix = dailySessions > 0 ? ` · ${dailySessions}` : '';
 
   // Label above the timer
   const modeLabel = (() => {
     if (context === 'work') {
-      if (workMode === 'custom') return customWorkName;
+      if (workMode === 'custom')
+        return customWork.currentMode === 'break' ? 'Break' : `${customWorkName}${narrativeSuffix}`;
       if (pomodoro.currentMode === 'break')
         return pomodoro.breakKind === 'long' ? 'Long Break' : 'Break';
-      if (workMode === 'deep-work') return 'Deep Work';
-      return 'Work';
+      if (workMode === 'deep-work') return `Deep Work${narrativeSuffix}`;
+      return `${narrativeLabel}${narrativeSuffix}`;
     }
     // Cook — show variant-specific label
     if (cookMode === 'pasta') {
@@ -51,8 +104,6 @@ function App() {
       return cfg ? `${cfg.label} Egg` : 'Egg';
     }
     if (cookMode === 'sauce') {
-      const cfg = SAUCE_VARIANTS.find(s => s.id === cook.sauceVariant);
-      // During sauce, show current phase label
       return cook.phaseLabel;
     }
     // custom cook
@@ -66,6 +117,7 @@ function App() {
   const canReset      = context === 'work' ? activeWork.canReset      : cook.canReset;
   const toggle        = context === 'work' ? activeWork.toggle        : cook.toggle;
   const reset         = context === 'work' ? activeWork.reset         : cook.reset;
+  const skip          = context === 'work' ? activeWork.skip          : undefined;
 
   // Settings handlers — reset all timers on context switch
   const handleContextChange = useCallback((ctx: TimerContext) => {
@@ -96,14 +148,18 @@ function App() {
   const customTotalRemaining = cook.timeRemaining +
     cook.customPhases.slice(customPhaseIndex + 1).reduce((sum, p) => sum + p.seconds, 0);
 
+  // Keyboard shortcuts: Space = toggle, R = reset, S = skip
+  useKeyboard({ onToggle: toggle, onReset: reset, onSkip: skip, canReset, settingsOpen });
+
   // The big clock: show total remaining for multi-phase cook modes
-  const isSauceMode  = context === 'cook' && cookMode === 'sauce';
+  const isSauceMode   = context === 'cook' && cookMode === 'sauce';
   const isCustomMulti = context === 'cook' && cookMode === 'custom' && cook.customPhases.length > 1;
-  const displayTime  = isSauceMode
+  const displayTime   = isSauceMode
     ? sauceTotalRemaining
     : isCustomMulti
     ? customTotalRemaining
     : timeRemaining;
+
 
   return (
     <div
@@ -162,10 +218,16 @@ function App() {
         onSauceVariantChange={cook.setSauceVariant}
         customWorkName={customWorkName}
         customWorkMinutes={customWorkMinutes}
+        customBreakDuration={customBreakDuration}
+        customRounds={customRounds}
         onCustomWorkNameChange={setCustomWorkName}
         onCustomWorkMinutesChange={setCustomWorkMinutes}
+        onCustomBreakDurationChange={setCustomBreakDuration}
+        onCustomRoundsChange={setCustomRounds}
         customCookStages={cook.customCookStages}
         onCustomCookStagesChange={cook.setCustomCookStages}
+        dailySessions={dailySessions}
+        weekHistory={weekHistory}
       />
 
       {/* Main — timer only */}
@@ -179,6 +241,7 @@ function App() {
           padding: 'var(--space-16) var(--space-6)',
           maxWidth: 'var(--max-content-width)',
           margin: '0 auto',
+          gap: 'var(--space-6)',
         }}
       >
         {/* Mode label + timer */}
@@ -188,25 +251,15 @@ function App() {
             flexDirection: 'column',
             alignItems: 'center',
             gap: 'var(--space-3)',
-            marginBottom: 'var(--space-8)',
           }}
         >
           <ModeIndicator label={modeLabel} />
           <TimerDisplay timeRemaining={displayTime} />
         </div>
 
-        {/* Tracker zone — fixed height so controls don't shift */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: 240,
-            minHeight: 20,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 'var(--space-8)',
-          }}
-        >
+        {/* Tracker + controls — grouped so they sit close together */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-6)' }}>
+          {/* Tracker zone — only rendered when there's something to show */}
           {context === 'work' && workMode === 'pomodoro' && pomodoro.hasLongBreakCycle && (
             <SessionTracker
               sessionsCompleted={pomodoro.sessionsCompleted}
@@ -217,6 +270,12 @@ function App() {
             <SessionTracker
               sessionsCompleted={pomodoro.roundsCompleted}
               sessionsBeforeLongBreak={deepWorkRounds}
+            />
+          )}
+          {context === 'work' && workMode === 'custom' && (
+            <SessionTracker
+              sessionsCompleted={customWork.roundsCompleted}
+              sessionsBeforeLongBreak={customRounds}
             />
           )}
           {context === 'cook' && cookMode === 'sauce' && (
@@ -235,15 +294,15 @@ function App() {
               timeRemaining={cook.timeRemaining}
             />
           )}
-        </div>
 
-        {/* Controls */}
-        <Controls
-          isRunning={isRunning}
-          onToggle={toggle}
-          onReset={reset}
-          canReset={canReset}
-        />
+          {/* Controls */}
+          <Controls
+            isRunning={isRunning}
+            onToggle={toggle}
+            onReset={reset}
+            canReset={canReset}
+          />
+        </div>
       </main>
     </div>
   );
@@ -263,6 +322,8 @@ function IconButton({
     <button
       onClick={onClick}
       aria-label={label}
+      // Blur on mousedown so click never leaves a focus ring visible
+      onMouseDown={e => e.preventDefault()}
       style={{
         width: 'var(--size-icon-button)',
         height: 'var(--size-icon-button)',
@@ -292,7 +353,7 @@ function IconButton({
       }}
       onFocus={e => {
         const b = e.currentTarget as HTMLButtonElement;
-        b.style.outline = 'var(--outline-width) solid var(--color-accent)';
+        b.style.outline = 'var(--outline-width) solid var(--color-muted-strong)';
         b.style.outlineOffset = 'var(--outline-offset)';
       }}
       onBlur={e => {

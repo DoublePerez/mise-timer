@@ -77,7 +77,7 @@ export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsPro
           fontWeight: 500,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          padding: '10px 28px',
+          padding: '12px 40px',
           borderRadius: 'var(--radius-full)',
           border: 'none',
           cursor: 'pointer',
@@ -99,7 +99,6 @@ export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsPro
         {isRunning ? 'Pause' : 'Start'}
       </button>
 
-      {/* Reset — single quiet ghost button */}
       <SecondaryButton label="Reset" visible={canReset} onClick={onReset} />
     </div>
   );

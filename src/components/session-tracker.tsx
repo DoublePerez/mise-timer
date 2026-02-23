@@ -53,11 +53,10 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
           : `Step ${currentPhaseIndex + 1}: ${phases[currentPhaseIndex]?.label}`
       }
       style={{
-        display: 'flex',
+        display: 'inline-flex',
         flexDirection: 'column',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: 'var(--space-3)',
-        width: '100%',
       }}
     >
       {phases.map((phase, i) => {
@@ -73,7 +72,6 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
               gap: 'var(--space-3)',
               opacity: isDone ? 0.3 : 1,
               transition: 'opacity var(--dur-normal) var(--ease)',

@@ -3,6 +3,7 @@ import type { TimerContext, WorkMode, CookMode, WorkDuration, BreakDuration, Dee
 import { DEFAULT_DEEP_WORK_ROUNDS, PASTA_VARIANTS, EGG_VARIANTS } from '@/lib/constants';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { useKeyboard } from '@/hooks/use-keyboard';
+import { useAlarm } from '@/hooks/use-alarm';
 import { getNarrativeLabel } from '@/lib/narrative';
 import { usePomodoro, useCustomWorkTimer } from '@/hooks/use-pomodoro';
 import { useCookTimer } from '@/hooks/use-cook-timer';
@@ -46,8 +47,26 @@ function App() {
   // Detect when a work session completes — increment daily counter.
   // We track the previous sessionsCompleted value; when it increases (or wraps
   // back to 0 after a long-break cycle) a session fired.
+  const playAlarm = useAlarm();
   const prevPomoSessions = useRef(pomodoro.sessionsCompleted);
   const prevCustomRounds = useRef(customWork.roundsCompleted);
+
+  // Play alarm whenever the active timer hits zero
+  const prevWorkTime = useRef(pomodoro.timeRemaining);
+  const prevCustomTime = useRef(customWork.timeRemaining);
+  const prevCookTime = useRef(cook.timeRemaining);
+  useEffect(() => {
+    const t = context === 'cook' ? cook.timeRemaining
+            : workMode === 'custom' ? customWork.timeRemaining
+            : pomodoro.timeRemaining;
+    const prev = context === 'cook' ? prevCookTime.current
+               : workMode === 'custom' ? prevCustomTime.current
+               : prevWorkTime.current;
+    if (prev > 0 && t === 0) playAlarm();
+    prevWorkTime.current = pomodoro.timeRemaining;
+    prevCustomTime.current = customWork.timeRemaining;
+    prevCookTime.current = cook.timeRemaining;
+  }, [pomodoro.timeRemaining, customWork.timeRemaining, cook.timeRemaining, context, workMode, playAlarm]);
 
   useEffect(() => {
     const prev = prevPomoSessions.current;
@@ -230,36 +249,46 @@ function App() {
         weekHistory={weekHistory}
       />
 
-      {/* Main — timer only */}
+      {/* Main — fixed layout so clock never moves */}
       <main
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          position: 'relative',
           minHeight: '100dvh',
-          padding: 'var(--space-16) var(--space-6)',
           maxWidth: 'var(--max-content-width)',
           margin: '0 auto',
-          gap: 'var(--space-6)',
         }}
       >
-        {/* Mode label + timer */}
+        {/* Clock block — pinned at vertical center */}
         <div
           style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 'var(--space-3)',
+            gap: 'var(--space-2)',
           }}
         >
           <ModeIndicator label={modeLabel} />
           <TimerDisplay timeRemaining={displayTime} />
         </div>
 
-        {/* Tracker + controls — grouped so they sit close together */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-6)' }}>
-          {/* Tracker zone — only rendered when there's something to show */}
+        {/* Below-clock zone — tracker + controls, anchored below center */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(50% + 120px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 'var(--space-6)',
+          }}
+        >
+          {/* Tracker zone */}
           {context === 'work' && workMode === 'pomodoro' && pomodoro.hasLongBreakCycle && (
             <SessionTracker
               sessionsCompleted={pomodoro.sessionsCompleted}

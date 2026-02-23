@@ -181,7 +181,7 @@ function SegRow<T extends string | number>({
                 letterSpacing: 'var(--tracking)',
                 // Equal flex so all options share available space evenly
                 flex: 1,
-                padding: 'var(--space-2) 0',
+                padding: 'var(--space-3) var(--space-1)',
                 borderRadius: 'var(--radius-full)',
                 border: 'none',
                 cursor: 'pointer',
@@ -204,6 +204,7 @@ function SegRow<T extends string | number>({
                 if (!isActive)
                   (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)';
               }}
+              onMouseDown={e => e.preventDefault()}
               onFocus={e => {
                 const b = e.currentTarget as HTMLButtonElement;
                 b.style.outline = 'var(--outline-width) solid var(--color-muted-strong)';
@@ -224,14 +225,14 @@ function SegRow<T extends string | number>({
 
 function Divider() {
   return (
-    <div style={{ width: '100%', height: 'var(--border-width)', background: 'var(--color-border)', flexShrink: 0 }} />
+    <div style={{ width: '100%', height: 'var(--border-width)', background: 'var(--color-border)', opacity: 0.5, flexShrink: 0 }} />
   );
 }
 
 // ── Group: vertically stacked rows with consistent gap ────────────────
 function Group({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
       {children}
     </div>
   );
@@ -263,52 +264,40 @@ function CustomWorkRow({
   onMinutesChange: (m: number) => void;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-      <span style={{
-        fontFamily: 'var(--font-sans)',
-        fontSize: 'var(--text-xs)',
-        fontWeight: 400,
-        letterSpacing: '0.02em',
-        color: 'var(--color-muted)',
-        lineHeight: 1,
-      }}>
-        Custom
-      </span>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 'var(--space-2)', alignItems: 'center' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 'var(--space-2)', alignItems: 'center' }}>
+      <input
+        type="text"
+        value={name}
+        maxLength={20}
+        placeholder="Name"
+        onChange={e => onNameChange(e.target.value)}
+        style={inputStyle}
+        aria-label="Custom timer name"
+      />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', flexShrink: 0 }}>
         <input
           type="text"
-          value={name}
-          maxLength={20}
-          placeholder="Name"
-          onChange={e => onNameChange(e.target.value)}
-          style={inputStyle}
-          aria-label="Custom timer name"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={minutes}
+          onChange={e => {
+            const v = parseInt(e.target.value, 10);
+            if (!isNaN(v) && v >= 1) onMinutesChange(v);
+          }}
+          style={{ ...inputStyle, width: 44, textAlign: 'center', padding: 'var(--space-2) var(--space-1)' }}
+          aria-label="Custom timer minutes"
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', flexShrink: 0 }}>
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={minutes}
-            onChange={e => {
-              const v = parseInt(e.target.value, 10);
-              if (!isNaN(v) && v >= 1) onMinutesChange(v);
-            }}
-            style={{ ...inputStyle, width: 44, textAlign: 'center', padding: 'var(--space-2) var(--space-1)' }}
-            aria-label="Custom timer minutes"
-          />
-          <span style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 'var(--text-xs)',
-            color: 'var(--color-muted)',
-            letterSpacing: 'var(--tracking)',
-            lineHeight: 1,
-            whiteSpace: 'nowrap',
-            userSelect: 'none',
-          }}>
-            min
-          </span>
-        </div>
+        <span style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 'var(--text-xs)',
+          color: 'var(--color-muted)',
+          letterSpacing: 'var(--tracking)',
+          lineHeight: 1,
+          whiteSpace: 'nowrap',
+          userSelect: 'none',
+        }}>
+          min
+        </span>
       </div>
     </div>
   );
@@ -391,21 +380,24 @@ function StageBuilder({
               aria-label={`Stage ${i + 1} minutes`}
             />
             <span style={durationSuffixStyle}>min</span>
-            <button
-              onClick={() => removeStage(i)}
-              disabled={stages.length <= 1}
-              aria-label={`Remove stage ${i + 1}`}
-              style={{
-                width: 16, height: 16,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'none', border: 'none',
-                cursor: stages.length <= 1 ? 'default' : 'pointer',
-                color: stages.length <= 1 ? 'var(--color-border)' : 'var(--color-muted)',
-                flexShrink: 0, outline: 'none', padding: 0,
-              }}
-            >
-              <MinusIcon />
-            </button>
+            {stages.length > 1 && (
+              <button
+                onClick={() => removeStage(i)}
+                aria-label={`Remove stage ${i + 1}`}
+                style={{
+                  width: 14, height: 14,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'none', border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--color-border)',
+                  flexShrink: 0, outline: 'none', padding: 0,
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-border)'}
+              >
+                <MinusIcon />
+              </button>
+            )}
           </div>
         </div>
       ))}
@@ -418,17 +410,16 @@ function StageBuilder({
           background: 'none', border: 'none', cursor: 'pointer',
           fontFamily: 'var(--font-sans)',
           fontSize: 'var(--text-xs)',
-          letterSpacing: 'var(--tracking-wide)',
-          textTransform: 'uppercase',
-          color: 'var(--color-muted)',
+          letterSpacing: '0.02em',
+          color: 'var(--color-border)',
           padding: 0,
           outline: 'none',
           marginTop: 'var(--space-1)',
         }}
-        onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-fg)'}
-        onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)'}
+        onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)'}
+        onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-border)'}
       >
-        <PlusIcon /> Add stage
+        <PlusIcon /> add stage
       </button>
     </div>
   );
@@ -491,7 +482,7 @@ export function SettingsPanel({
         aria-hidden="true"
         style={{
           position: 'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.2)',
+          background: 'rgba(0,0,0,0.55)',
           zIndex: 20,
         }}
       />
@@ -506,19 +497,31 @@ export function SettingsPanel({
           top: 'var(--space-12)',
           right: 'var(--space-6)',
           zIndex: 30,
-          width: 232,
+          width: 272,
           background: 'var(--color-surface)',
           border: 'var(--border-width) solid var(--color-border)',
           borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-3) var(--space-4) var(--space-4)',
+          padding: '20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--space-4)',
+          gap: '20px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
         }}
       >
-        {/* Header — just the close button, right-aligned */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        {/* Header row: SETTINGS + X */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 'var(--text-xs)',
+            fontWeight: 400,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--color-border)',
+            lineHeight: 1,
+            userSelect: 'none',
+          }}>
+            Settings
+          </span>
           <button
             onClick={onClose}
             aria-label="Close settings"
@@ -526,16 +529,11 @@ export function SettingsPanel({
               width: 16, height: 16,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--color-border)', borderRadius: 'var(--radius-sm)', outline: 'none',
-              flexShrink: 0,
+              color: 'var(--color-border)', outline: 'none', padding: 0,
             }}
             onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)'}
             onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-border)'}
-            onFocus={e => {
-              const b = e.currentTarget as HTMLButtonElement;
-              b.style.outline = 'var(--outline-width) solid var(--color-accent)';
-              b.style.outlineOffset = 'var(--outline-offset)';
-            }}
+            onFocus={e => { const b = e.currentTarget as HTMLButtonElement; b.style.outline = 'var(--outline-width) solid var(--color-muted-strong)'; b.style.outlineOffset = 'var(--outline-offset)'; }}
             onBlur={e => (e.currentTarget as HTMLButtonElement).style.outline = 'none'}
           >
             <XIcon />
@@ -544,15 +542,70 @@ export function SettingsPanel({
 
         {/* Context + sub-mode */}
         <Group>
-          <SegRow
-            label="Mode"
-            options={[
-              { value: 'work' as TimerContext, label: 'Work' },
-              { value: 'cook' as TimerContext, label: 'Cook' },
-            ]}
-            selected={context}
-            onChange={onContextChange}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <span style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 'var(--text-xs)',
+              fontWeight: 400,
+              letterSpacing: '0.02em',
+              color: 'var(--color-muted)',
+              lineHeight: 1,
+            }}>
+              Mode
+            </span>
+            <div
+              role="group"
+              aria-label="Mode"
+              style={{
+                display: 'flex',
+                width: '100%',
+                alignItems: 'center',
+                border: 'var(--border-width) solid var(--color-border)',
+                borderRadius: 'var(--radius-full)',
+                background: 'var(--color-bg)',
+                padding: 'var(--inset-pill)',
+                gap: 'var(--inset-pill)',
+              }}
+            >
+              {([
+                { value: 'work' as TimerContext, label: 'Work' },
+                { value: 'cook' as TimerContext, label: 'Cook' },
+              ]).map(opt => {
+                const isActive = opt.value === context;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => onContextChange(opt.value)}
+                    aria-pressed={isActive}
+                    onMouseDown={e => e.preventDefault()}
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 'var(--text-xs)',
+                      fontWeight: isActive ? 500 : 400,
+                      letterSpacing: 'var(--tracking)',
+                      flex: 1,
+                      padding: 'var(--space-3) var(--space-1)',
+                      borderRadius: 'var(--radius-full)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: isActive ? 'var(--color-surface-raised)' : 'transparent',
+                      color: isActive ? 'var(--color-fg)' : 'var(--color-muted)',
+                      transition: 'background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease)',
+                      lineHeight: 1,
+                      textAlign: 'center',
+                      outline: 'none',
+                    }}
+                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-fg)'; }}
+                    onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)'; }}
+                    onFocus={e => { const b = e.currentTarget as HTMLButtonElement; b.style.outline = 'var(--outline-width) solid var(--color-muted-strong)'; b.style.outlineOffset = 'var(--outline-offset)'; }}
+                    onBlur={e => (e.currentTarget as HTMLButtonElement).style.outline = 'none'}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           {context === 'work' && (
             <SegRow
               label="Style"

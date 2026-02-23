@@ -11,7 +11,7 @@ const NARRATIVE_LEVELS = [
 
 /** Total work sessions completed across the whole day (passed in from storage). */
 export function getNarrativeLabel(totalSessions: number): string {
-  let label = NARRATIVE_LEVELS[0].label;
+  let label: string = NARRATIVE_LEVELS[0].label;
   for (const level of NARRATIVE_LEVELS) {
     if (totalSessions >= level.threshold) label = level.label;
   }

@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
-/* ── Geist fonts (self-hosted via npm package) ────────────────────── */
+/* ── Geist fonts — relative import so Vite bundles them in production ─ */
 @font-face {
   font-family: 'Geist';
-  src: url('/node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+  src: url('../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -11,7 +11,7 @@
 
 @font-face {
   font-family: 'Geist Mono';
-  src: url('/node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+  src: url('../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -44,6 +44,7 @@
   --text-timer: 112px;
   --tracking: -0.01em;
   --tracking-wide: 0.08em;
+  --tracking-timer: -0.03em;
   --leading-tight: 1.2;
   --leading-normal: 1.4;
   --leading-timer: 1.0;
@@ -59,6 +60,15 @@
   --dur-normal: 150ms;
   --dur-slow: 300ms;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Structural */
+  --border-width: 1px;
+  --outline-width: 2px;
+  --outline-offset: 3px;
+  --inset-pill: 2px;         /* padding inside segmented pill container */
+  --size-icon-button: 32px;  /* theme toggle */
+  --min-segment-width: 32px; /* min-width of each duration segment */
+  --max-content-width: 520px;
 
   /* Colors — Dark (default) */
   --color-bg: #1A1A1A;

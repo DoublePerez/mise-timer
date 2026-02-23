@@ -5,6 +5,23 @@ interface ControlsProps {
   canReset: boolean;
 }
 
+function applyFocusRing(el: HTMLButtonElement) {
+  el.style.outline = 'var(--outline-width) solid var(--color-accent)';
+  el.style.outlineOffset = 'var(--outline-offset)';
+}
+
+function clearFocusRing(el: HTMLButtonElement) {
+  el.style.outline = 'none';
+}
+
+function pressDown(el: HTMLButtonElement) {
+  el.style.transform = 'scale(0.98)';
+}
+
+function pressUp(el: HTMLButtonElement) {
+  el.style.transform = 'scale(1)';
+}
+
 export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsProps) {
   return (
     <div
@@ -38,22 +55,11 @@ export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsPro
           ].join(', '),
           outline: 'none',
         }}
-        onMouseDown={e => {
-          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.98)';
-        }}
-        onMouseUp={e => {
-          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-        }}
-        onFocus={e => {
-          (e.currentTarget as HTMLButtonElement).style.outline = '2px solid var(--color-accent)';
-          (e.currentTarget as HTMLButtonElement).style.outlineOffset = '3px';
-        }}
-        onBlur={e => {
-          (e.currentTarget as HTMLButtonElement).style.outline = 'none';
-        }}
+        onMouseDown={e => pressDown(e.currentTarget as HTMLButtonElement)}
+        onMouseUp={e => pressUp(e.currentTarget as HTMLButtonElement)}
+        onMouseLeave={e => pressUp(e.currentTarget as HTMLButtonElement)}
+        onFocus={e => applyFocusRing(e.currentTarget as HTMLButtonElement)}
+        onBlur={e => clearFocusRing(e.currentTarget as HTMLButtonElement)}
       >
         {isRunning ? 'Pause' : 'Start'}
       </button>
@@ -83,23 +89,18 @@ export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsPro
             (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-fg)';
           }}
           onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)';
-            (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
+            const btn = e.currentTarget as HTMLButtonElement;
+            btn.style.color = 'var(--color-muted)';
+            pressUp(btn);
           }}
-          onMouseDown={e => {
-            (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.98)';
-          }}
-          onMouseUp={e => {
-            (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-          }}
+          onMouseDown={e => pressDown(e.currentTarget as HTMLButtonElement)}
+          onMouseUp={e => pressUp(e.currentTarget as HTMLButtonElement)}
           onFocus={e => {
-            (e.currentTarget as HTMLButtonElement).style.outline = '2px solid var(--color-accent)';
-            (e.currentTarget as HTMLButtonElement).style.outlineOffset = '3px';
-            (e.currentTarget as HTMLButtonElement).style.borderRadius = 'var(--radius-sm)';
+            const btn = e.currentTarget as HTMLButtonElement;
+            applyFocusRing(btn);
+            btn.style.borderRadius = 'var(--radius-sm)';
           }}
-          onBlur={e => {
-            (e.currentTarget as HTMLButtonElement).style.outline = 'none';
-          }}
+          onBlur={e => clearFocusRing(e.currentTarget as HTMLButtonElement)}
         >
           Reset
         </button>

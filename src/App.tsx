@@ -32,7 +32,7 @@ function App() {
           justifyContent: 'center',
           minHeight: '100dvh',
           padding: 'var(--space-16) var(--space-6)',
-          maxWidth: '520px',
+          maxWidth: 'var(--max-content-width)',
           margin: '0 auto',
           position: 'relative',
           zIndex: 1,
@@ -101,13 +101,13 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
         position: 'fixed',
         top: 'var(--space-6)',
         right: 'var(--space-6)',
-        width: '32px',
-        height: '32px',
+        width: 'var(--size-icon-button)',
+        height: 'var(--size-icon-button)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
+        border: 'var(--border-width) solid var(--color-border)',
         borderRadius: 'var(--radius-md)',
         cursor: 'pointer',
         color: 'var(--color-muted)',
@@ -129,8 +129,8 @@ function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }
       }}
       onFocus={e => {
         const btn = e.currentTarget as HTMLButtonElement;
-        btn.style.outline = '2px solid var(--color-accent)';
-        btn.style.outlineOffset = '3px';
+        btn.style.outline = 'var(--outline-width) solid var(--color-accent)';
+        btn.style.outlineOffset = 'var(--outline-offset)';
       }}
       onBlur={e => {
         (e.currentTarget as HTMLButtonElement).style.outline = 'none';

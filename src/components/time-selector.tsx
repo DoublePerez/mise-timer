@@ -45,11 +45,11 @@ export function TimeSelector({
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          border: '1px solid var(--color-border)',
+          border: 'var(--border-width) solid var(--color-border)',
           borderRadius: 'var(--radius-full)',
           background: 'var(--color-surface)',
-          padding: '2px',
-          gap: '2px',
+          padding: 'var(--inset-pill)',
+          gap: 'var(--inset-pill)',
         }}
         role="group"
         aria-label={`${label} duration`}
@@ -80,7 +80,7 @@ export function TimeSelector({
                 ].join(', '),
                 lineHeight: 1,
                 whiteSpace: 'nowrap',
-                minWidth: '32px',
+                minWidth: 'var(--min-segment-width)',
                 textAlign: 'center',
               }}
               onMouseEnter={e => {
@@ -94,8 +94,9 @@ export function TimeSelector({
                 }
               }}
               onFocus={e => {
-                (e.currentTarget as HTMLButtonElement).style.outline = '2px solid var(--color-accent)';
-                (e.currentTarget as HTMLButtonElement).style.outlineOffset = '2px';
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.outline = 'var(--outline-width) solid var(--color-accent)';
+                btn.style.outlineOffset = 'var(--outline-offset)';
               }}
               onBlur={e => {
                 (e.currentTarget as HTMLButtonElement).style.outline = 'none';

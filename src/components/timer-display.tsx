@@ -11,7 +11,7 @@ export function TimerDisplay({ timeRemaining }: TimerDisplayProps) {
         fontFamily: 'var(--font-mono)',
         fontSize: 'var(--text-timer)',
         lineHeight: 'var(--leading-timer)',
-        letterSpacing: '-0.03em',
+        letterSpacing: 'var(--tracking-timer)',
         fontWeight: 400,
         fontVariantNumeric: 'tabular-nums',
         fontFeatureSettings: '"tnum"',

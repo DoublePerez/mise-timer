@@ -88,6 +88,23 @@ function App() {
   const saucePhases     = cook.saucePhases;
   const saucePhaseIndex = cook.saucePhaseIndex ?? 0;
 
+  // Total remaining for multi-phase timers: current phase remaining + all future phases
+  const sauceTotalRemaining = cook.timeRemaining +
+    saucePhases.slice(saucePhaseIndex + 1).reduce((sum, p) => sum + p.seconds, 0);
+
+  const customPhaseIndex = cook.customPhaseIndex ?? 0;
+  const customTotalRemaining = cook.timeRemaining +
+    cook.customPhases.slice(customPhaseIndex + 1).reduce((sum, p) => sum + p.seconds, 0);
+
+  // The big clock: show total remaining for multi-phase cook modes
+  const isSauceMode  = context === 'cook' && cookMode === 'sauce';
+  const isCustomMulti = context === 'cook' && cookMode === 'custom' && cook.customPhases.length > 1;
+  const displayTime  = isSauceMode
+    ? sauceTotalRemaining
+    : isCustomMulti
+    ? customTotalRemaining
+    : timeRemaining;
+
   return (
     <div
       data-theme={theme}
@@ -175,7 +192,7 @@ function App() {
           }}
         >
           <ModeIndicator label={modeLabel} />
-          <TimerDisplay timeRemaining={timeRemaining} />
+          <TimerDisplay timeRemaining={displayTime} />
         </div>
 
         {/* Tracker zone — fixed height so controls don't shift */}

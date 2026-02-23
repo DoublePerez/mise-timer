@@ -72,20 +72,20 @@
 
   /* ── Dark Mode Colors (default) ──────────────────────────────────── */
 
-  /* Deep warm near-black — not neutral grey, not cold blue. Feels like ink. */
-  --color-bg: #0E0D0C;
-  --color-surface: #171614;
-  --color-surface-raised: #211F1D;
-  --color-fg: #F0EDE6;          /* warm off-white, not pure white */
-  --color-muted: #625F5B;
-  --color-muted-strong: #908C87;
-  --color-border: #2A2826;
+  /* Cold near-black. No warmth. Feels like a precision instrument. */
+  --color-bg: #0A0A0A;
+  --color-surface: #141414;
+  --color-surface-raised: #1E1E1E;
+  --color-fg: #F0F0F0;          /* cool off-white */
+  --color-muted: #5A5A5A;
+  --color-muted-strong: #8A8A8A;
+  --color-border: #242424;
 
-  /* Accents — vivid enough to read on near-black, never neon */
-  --color-work: #E2A84B;        /* warm gold */
-  --color-work-bloom: rgba(226, 168, 75, 0);
-  --color-break: #5BA3C9;       /* clear sky blue */
-  --color-break-bloom: rgba(91, 163, 201, 0);
+  /* Accents — burnt red-orange from the reference, cool grey for break */
+  --color-work: #E8422A;
+  --color-work-bloom: rgba(232, 66, 42, 0);
+  --color-break: #707070;
+  --color-break-bloom: rgba(112, 112, 112, 0);
 
   /* Active accent */
   --color-accent: var(--color-work);
@@ -94,20 +94,20 @@
 
 /* ── Light Mode ───────────────────────────────────────────────────── */
 [data-theme="light"] {
-  /* Clean warm paper — like a Swiss poster on good stock */
-  --color-bg: #F4F1EB;
-  --color-surface: #EAE6DE;
-  --color-surface-raised: #E0DCD3;
-  --color-fg: #0E0D0C;
-  --color-muted: #7E7A74;
-  --color-muted-strong: #514E49;
-  --color-border: #D0CBBf;
+  /* Cool light grey — exactly like the sleep app. Clinical. Not warm. */
+  --color-bg: #EFEFEF;
+  --color-surface: #E4E4E4;
+  --color-surface-raised: #D8D8D8;
+  --color-fg: #0A0A0A;
+  --color-muted: #888888;
+  --color-muted-strong: #555555;
+  --color-border: #D0D0D0;
 
-  /* Accents — same hues, deeper values for contrast on light bg */
-  --color-work: #B07820;
-  --color-work-bloom: rgba(176, 120, 32, 0);
-  --color-break: #2878A0;
-  --color-break-bloom: rgba(40, 120, 160, 0);
+  /* Same red, slightly deeper for light bg contrast */
+  --color-work: #D03820;
+  --color-work-bloom: rgba(208, 56, 32, 0);
+  --color-break: #505050;
+  --color-break-bloom: rgba(80, 80, 80, 0);
 }
 
 /* ── Mode Accent Switching ────────────────────────────────────────── */

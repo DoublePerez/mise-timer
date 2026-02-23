@@ -17,7 +17,7 @@
   font-display: swap;
 }
 
-/* ── Design Tokens — Dark Mode (default) ─────────────────────────── */
+/* ── Design Tokens ────────────────────────────────────────────────── */
 :root {
   /* Grid — 4px base unit */
   --grid-unit: 4px;
@@ -65,44 +65,49 @@
   --border-width: 1px;
   --outline-width: 2px;
   --outline-offset: 3px;
-  --inset-pill: 2px;         /* padding inside segmented pill container */
-  --size-icon-button: 32px;  /* theme toggle */
-  --min-segment-width: 32px; /* min-width of each duration segment */
-  --max-content-width: 520px;
+  --inset-pill: 2px;
+  --size-icon-button: 32px;
+  --min-segment-width: 32px;
+  --max-content-width: 480px;
 
-  /* Colors — Dark (default) */
-  --color-bg: #1A1A1A;
-  --color-surface: #222222;
-  --color-surface-raised: #2A2A2A;
-  --color-fg: #F0EEE9;
-  --color-muted: #6B6966;
-  --color-muted-strong: #9A9794;
-  --color-border: #2E2C2A;
+  /* ── Dark Mode Colors (default) ──────────────────────────────────── */
 
-  /* Mode accents */
-  --color-work: #C8A96E;
-  --color-work-bloom: rgba(200, 169, 110, 0.06);
-  --color-break: #4A8FA8;
-  --color-break-bloom: rgba(74, 143, 168, 0.06);
+  /* Deep warm near-black — not neutral grey, not cold blue. Feels like ink. */
+  --color-bg: #0E0D0C;
+  --color-surface: #171614;
+  --color-surface-raised: #211F1D;
+  --color-fg: #F0EDE6;          /* warm off-white, not pure white */
+  --color-muted: #625F5B;
+  --color-muted-strong: #908C87;
+  --color-border: #2A2826;
 
-  /* Active accent — switches with data-mode */
+  /* Accents — vivid enough to read on near-black, never neon */
+  --color-work: #E2A84B;        /* warm gold */
+  --color-work-bloom: rgba(226, 168, 75, 0);
+  --color-break: #5BA3C9;       /* clear sky blue */
+  --color-break-bloom: rgba(91, 163, 201, 0);
+
+  /* Active accent */
   --color-accent: var(--color-work);
   --bloom-color: var(--color-work-bloom);
 }
 
 /* ── Light Mode ───────────────────────────────────────────────────── */
 [data-theme="light"] {
-  --color-bg: #F5F4F0;
-  --color-surface: #ECEAE4;
-  --color-surface-raised: #E4E2DB;
-  --color-fg: #0D0D0D;
-  --color-muted: #8A8680;
-  --color-muted-strong: #5A5854;
-  --color-border: #DDDBD5;
-  --color-work: #A07832;
-  --color-work-bloom: rgba(160, 120, 50, 0.05);
-  --color-break: #2E6A8E;
-  --color-break-bloom: rgba(46, 106, 142, 0.05);
+  /* Clean warm paper — like a Swiss poster on good stock */
+  --color-bg: #F4F1EB;
+  --color-surface: #EAE6DE;
+  --color-surface-raised: #E0DCD3;
+  --color-fg: #0E0D0C;
+  --color-muted: #7E7A74;
+  --color-muted-strong: #514E49;
+  --color-border: #D0CBBf;
+
+  /* Accents — same hues, deeper values for contrast on light bg */
+  --color-work: #B07820;
+  --color-work-bloom: rgba(176, 120, 32, 0);
+  --color-break: #2878A0;
+  --color-break-bloom: rgba(40, 120, 160, 0);
 }
 
 /* ── Mode Accent Switching ────────────────────────────────────────── */
@@ -144,23 +149,23 @@ body {
     color var(--dur-slow) var(--ease);
 }
 
-/* ── Bloom Layer ──────────────────────────────────────────────────── */
+/* ── Bloom layer removed — flat background only ───────────────────── */
 .bloom-layer {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(
-    ellipse 70% 45% at 50% -5%,
-    var(--bloom-color),
-    transparent 100%
-  );
-  transition: background var(--dur-slow) var(--ease);
+  display: none;
 }
 
-/* ── Responsive Typography ────────────────────────────────────────── */
+/* ── Settings divider line ────────────────────────────────────────── */
+.settings-divider {
+  width: 100%;
+  height: var(--border-width);
+  background: var(--color-border);
+  margin: var(--space-12) 0 var(--space-8);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   :root {
     --text-timer: 80px;
+    --max-content-width: 100%;
   }
 }

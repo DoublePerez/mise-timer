@@ -1,68 +1,156 @@
+@import "tailwindcss";
+
+/* ── Geist fonts (self-hosted via npm package) ────────────────────── */
+@font-face {
+  font-family: 'Geist';
+  src: url('/node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Design Tokens — Dark Mode (default) ─────────────────────────── */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Grid — 4px base unit */
+  --grid-unit: 4px;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  /* Typography */
+  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', 'Fira Code', monospace;
+  --text-xs: 10px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-timer: 112px;
+  --tracking: -0.01em;
+  --tracking-wide: 0.08em;
+  --leading-tight: 1.2;
+  --leading-normal: 1.4;
+  --leading-timer: 1.0;
+
+  /* Radius */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  /* Motion */
+  --dur-fast: 100ms;
+  --dur-normal: 150ms;
+  --dur-slow: 300ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Colors — Dark (default) */
+  --color-bg: #1A1A1A;
+  --color-surface: #222222;
+  --color-surface-raised: #2A2A2A;
+  --color-fg: #F0EEE9;
+  --color-muted: #6B6966;
+  --color-muted-strong: #9A9794;
+  --color-border: #2E2C2A;
+
+  /* Mode accents */
+  --color-work: #C8A96E;
+  --color-work-bloom: rgba(200, 169, 110, 0.06);
+  --color-break: #4A8FA8;
+  --color-break-bloom: rgba(74, 143, 168, 0.06);
+
+  /* Active accent — switches with data-mode */
+  --color-accent: var(--color-work);
+  --bloom-color: var(--color-work-bloom);
+}
+
+/* ── Light Mode ───────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --color-bg: #F5F4F0;
+  --color-surface: #ECEAE4;
+  --color-surface-raised: #E4E2DB;
+  --color-fg: #0D0D0D;
+  --color-muted: #8A8680;
+  --color-muted-strong: #5A5854;
+  --color-border: #DDDBD5;
+  --color-work: #A07832;
+  --color-work-bloom: rgba(160, 120, 50, 0.05);
+  --color-break: #2E6A8E;
+  --color-break-bloom: rgba(46, 106, 142, 0.05);
+}
+
+/* ── Mode Accent Switching ────────────────────────────────────────── */
+[data-mode="work"] {
+  --color-accent: var(--color-work);
+  --bloom-color: var(--color-work-bloom);
+}
+
+[data-mode="break"] {
+  --color-accent: var(--color-break);
+  --bloom-color: var(--color-break-bloom);
+}
+
+/* ── Base Reset ───────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--text-sm);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking);
+  color: var(--color-fg);
+  background-color: var(--color-bg);
+  min-height: 100dvh;
+  transition:
+    background-color var(--dur-slow) var(--ease),
+    color var(--dur-slow) var(--ease);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* ── Bloom Layer ──────────────────────────────────────────────────── */
+.bloom-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 70% 45% at 50% -5%,
+    var(--bloom-color),
+    transparent 100%
+  );
+  transition: background var(--dur-slow) var(--ease);
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+/* ── Responsive Typography ────────────────────────────────────────── */
+@media (max-width: 640px) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+    --text-timer: 80px;
   }
 }

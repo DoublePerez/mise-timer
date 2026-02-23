@@ -141,8 +141,7 @@ function SegRow<T extends string | number>({
             fontFamily: 'var(--font-sans)',
             fontSize: 'var(--text-xs)',
             fontWeight: 400,
-            letterSpacing: 'var(--tracking-wide)',
-            textTransform: 'uppercase',
+            letterSpacing: '0.02em',
             color: 'var(--color-muted)',
             lineHeight: 1,
           }}
@@ -207,7 +206,7 @@ function SegRow<T extends string | number>({
               }}
               onFocus={e => {
                 const b = e.currentTarget as HTMLButtonElement;
-                b.style.outline = 'var(--outline-width) solid var(--color-accent)';
+                b.style.outline = 'var(--outline-width) solid var(--color-muted-strong)';
                 b.style.outlineOffset = 'var(--outline-offset)';
               }}
               onBlur={e => {
@@ -269,8 +268,7 @@ function CustomWorkRow({
         fontFamily: 'var(--font-sans)',
         fontSize: 'var(--text-xs)',
         fontWeight: 400,
-        letterSpacing: 'var(--tracking-wide)',
-        textTransform: 'uppercase',
+        letterSpacing: '0.02em',
         color: 'var(--color-muted)',
         lineHeight: 1,
       }}>
@@ -508,30 +506,19 @@ export function SettingsPanel({
           top: 'var(--space-12)',
           right: 'var(--space-6)',
           zIndex: 30,
-          width: 260,
+          width: 232,
           background: 'var(--color-surface)',
           border: 'var(--border-width) solid var(--color-border)',
           borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-4)',
+          padding: 'var(--space-3) var(--space-4) var(--space-4)',
           display: 'flex',
           flexDirection: 'column',
           gap: 'var(--space-4)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
         }}
       >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 'var(--text-xs)',
-            fontWeight: 500,
-            letterSpacing: 'var(--tracking-wide)',
-            textTransform: 'uppercase',
-            color: 'var(--color-muted)',
-            lineHeight: 1,
-          }}>
-            Settings
-          </span>
+        {/* Header — just the close button, right-aligned */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
             aria-label="Close settings"
@@ -539,11 +526,11 @@ export function SettingsPanel({
               width: 16, height: 16,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--color-muted)', borderRadius: 'var(--radius-sm)', outline: 'none',
+              color: 'var(--color-border)', borderRadius: 'var(--radius-sm)', outline: 'none',
               flexShrink: 0,
             }}
-            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-fg)'}
-            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)'}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-border)'}
             onFocus={e => {
               const b = e.currentTarget as HTMLButtonElement;
               b.style.outline = 'var(--outline-width) solid var(--color-accent)';
@@ -554,8 +541,6 @@ export function SettingsPanel({
             <XIcon />
           </button>
         </div>
-
-        <Divider />
 
         {/* Context + sub-mode */}
         <Group>

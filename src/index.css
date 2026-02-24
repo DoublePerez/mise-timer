@@ -41,7 +41,7 @@
   --text-base: 14px;
   --text-lg: 18px;
   --text-xl: 24px;
-  --text-timer: 112px;
+  --text-timer: clamp(72px, 22vw, 112px);
   --tracking: -0.01em;
   --tracking-wide: 0.08em;
   --tracking-timer: -0.03em;
@@ -66,7 +66,7 @@
   --outline-width: 2px;
   --outline-offset: 3px;
   --inset-pill: 2px;
-  --size-icon-button: 32px;
+  --size-icon-button: 40px;
   --min-segment-width: 32px;
   --max-content-width: 480px;
 

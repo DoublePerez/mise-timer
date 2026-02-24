@@ -56,7 +56,7 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
         display: 'inline-flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
-        gap: 'var(--space-3)',
+        gap: 'var(--space-2)',
       }}
     >
       {phases.map((phase, i) => {

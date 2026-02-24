@@ -511,7 +511,7 @@ export function SettingsPanel({
           top: 'var(--space-12)',
           right: 'var(--space-6)',
           zIndex: 30,
-          width: 272,
+          width: 'min(272px, calc(100vw - 2 * var(--space-6)))',
           background: 'var(--color-surface)',
           border: 'var(--border-width) solid var(--color-border)',
           borderRadius: 'var(--radius-lg)',

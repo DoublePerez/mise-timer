@@ -249,45 +249,27 @@ function App() {
         weekHistory={weekHistory}
       />
 
-      {/* Main — fixed layout so clock never moves */}
+      {/* Main */}
       <main
         style={{
-          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           minHeight: '100dvh',
           maxWidth: 'var(--max-content-width)',
           margin: '0 auto',
+          gap: 'var(--space-4)',
         }}
       >
-        {/* Clock block — pinned at vertical center */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-          }}
-        >
+        {/* Clock */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)' }}>
           <ModeIndicator label={modeLabel} />
           <TimerDisplay timeRemaining={displayTime} />
         </div>
 
-        {/* Tracker zone — floats above the button, grows upward */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(50% + 80px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 'var(--space-4)',
-          }}
-        >
+        {/* Tracker */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {context === 'work' && workMode === 'pomodoro' && pomodoro.hasLongBreakCycle && (
             <SessionTracker
               sessionsCompleted={pomodoro.sessionsCompleted}
@@ -324,22 +306,13 @@ function App() {
           )}
         </div>
 
-        {/* Controls — always pinned at fixed position */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(50% + 160px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-          }}
-        >
-          <Controls
-            isRunning={isRunning}
-            onToggle={toggle}
-            onReset={reset}
-            canReset={canReset}
-          />
-        </div>
+        {/* Controls */}
+        <Controls
+          isRunning={isRunning}
+          onToggle={toggle}
+          onReset={reset}
+          canReset={canReset}
+        />
       </main>
     </div>
   );

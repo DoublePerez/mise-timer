@@ -16,6 +16,9 @@ import { SettingsPanel, SlidersIcon } from '@/components/settings-panel';
 type Theme = 'dark' | 'light';
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+  const handleSplashDone = useCallback(() => setShowSplash(false), []);
+
   const [theme, setTheme] = useLocalStorage<Theme>('pomo:theme', 'dark');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [context, setContext] = useLocalStorage<TimerContext>('pomo:context', 'work');
@@ -181,181 +184,255 @@ function App() {
 
 
   return (
-    <div
-      data-theme={theme}
-      data-mode={dataMode}
-      style={{
-        minHeight: '100dvh',
-        background: 'var(--color-bg)',
-        color: 'var(--color-fg)',
-        transition: [
-          'background var(--dur-slow) var(--ease)',
-          'color var(--dur-slow) var(--ease)',
-        ].join(', '),
-      }}
-    >
-      {/* Fixed top-right icon cluster: theme + gear */}
+    <>
+      {showSplash && <SplashScreen onDone={handleSplashDone} />}
+      <div
+        data-theme={theme}
+        data-mode={dataMode}
+        style={{
+          minHeight: '100dvh',
+          background: 'var(--color-bg)',
+          color: 'var(--color-fg)',
+          transition: [
+            'background var(--dur-slow) var(--ease)',
+            'color var(--dur-slow) var(--ease)',
+          ].join(', '),
+        }}
+      >
+        {/* Fixed top-right icon cluster: theme + gear */}
+        <div
+          style={{
+            position: 'fixed',
+            top: 'var(--space-6)',
+            right: 'var(--space-6)',
+            display: 'flex',
+            gap: 'var(--space-2)',
+            zIndex: 10,
+          }}
+        >
+          <IconButton onClick={toggleTheme} label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          </IconButton>
+          <IconButton onClick={openSettings} label="Open settings">
+            <SlidersIcon />
+          </IconButton>
+        </div>
+
+        {/* Settings overlay */}
+        <SettingsPanel
+          open={settingsOpen}
+          onClose={closeSettings}
+          context={context}
+          workMode={workMode}
+          cookMode={cookMode}
+          onContextChange={handleContextChange}
+          onWorkModeChange={handleWorkModeChange}
+          onCookModeChange={handleCookModeChange}
+          workDuration={pomodoro.workDuration}
+          breakDuration={pomodoro.breakDuration}
+          deepWorkRounds={deepWorkRounds}
+          onWorkDurationChange={d => pomodoro.setWorkDuration(d as WorkDuration)}
+          onBreakDurationChange={d => pomodoro.setBreakDuration(d as BreakDuration)}
+          onDeepWorkRoundsChange={setDeepWorkRounds}
+          pastaVariant={cook.pastaVariant}
+          eggVariant={cook.eggVariant}
+          sauceVariant={cook.sauceVariant}
+          onPastaVariantChange={cook.setPastaVariant}
+          onEggVariantChange={cook.setEggVariant}
+          onSauceVariantChange={cook.setSauceVariant}
+          customWorkName={customWorkName}
+          customWorkMinutes={customWorkMinutes}
+          customBreakDuration={customBreakDuration}
+          customRounds={customRounds}
+          onCustomWorkNameChange={setCustomWorkName}
+          onCustomWorkMinutesChange={setCustomWorkMinutes}
+          onCustomBreakDurationChange={setCustomBreakDuration}
+          onCustomRoundsChange={setCustomRounds}
+          customCookStages={cook.customCookStages}
+          onCustomCookStagesChange={cook.setCustomCookStages}
+          dailySessions={dailySessions}
+          weekHistory={weekHistory}
+        />
+
+        {/* Main — full-viewport canvas, children pinned with absolute positions */}
+        <main
+          style={{
+            position: 'relative',
+            minHeight: '100dvh',
+            maxWidth: 'var(--max-content-width)',
+            margin: '0 auto',
+          }}
+        >
+          {/* Zone A — Clock, pinned at --clock-anchor from top */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 'var(--clock-anchor)',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 'var(--space-3)',
+              width: '100%',
+              padding: '0 var(--space-6)',
+            }}
+          >
+            <ModeIndicator label={modeLabel} />
+            <TimerDisplay timeRemaining={displayTime} isPaused={!isRunning && canReset} />
+          </div>
+
+          {/* Zone B — Tracker, anchored just below clock bottom */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4))',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            {context === 'work' && workMode === 'pomodoro' && pomodoro.hasLongBreakCycle && (
+              <SessionTracker
+                sessionsCompleted={pomodoro.sessionsCompleted}
+                sessionsBeforeLongBreak={pomodoro.sessionsBeforeLongBreak}
+              />
+            )}
+            {context === 'work' && workMode === 'deep-work' && (
+              <SessionTracker
+                sessionsCompleted={pomodoro.roundsCompleted}
+                sessionsBeforeLongBreak={deepWorkRounds}
+              />
+            )}
+            {context === 'work' && workMode === 'custom' && (
+              <SessionTracker
+                sessionsCompleted={customWork.roundsCompleted}
+                sessionsBeforeLongBreak={customRounds}
+              />
+            )}
+            {context === 'cook' && cookMode === 'sauce' && (
+              <SauceTimeline
+                phases={saucePhases}
+                currentPhaseIndex={saucePhaseIndex}
+                isComplete={cook.isComplete}
+                timeRemaining={cook.timeRemaining}
+                isPaused={!isRunning && canReset}
+              />
+            )}
+            {context === 'cook' && cookMode === 'custom' && cook.customPhases.length > 1 && (
+              <SauceTimeline
+                phases={cook.customPhases}
+                currentPhaseIndex={cook.customPhaseIndex}
+                isComplete={cook.isComplete}
+                timeRemaining={cook.timeRemaining}
+                isPaused={!isRunning && canReset}
+              />
+            )}
+          </div>
+
+          {/* Zone C — Controls, pinned below tracker zone. */}
+          <div
+            style={{
+              position: 'absolute',
+              top: isSauceMode || isCustomMulti
+                ? 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4) + 88px + var(--space-8))'
+                : 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4) + 36px + var(--space-8))',
+              left: '50%',
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <Controls
+              isRunning={isRunning}
+              onToggle={toggle}
+              onReset={reset}
+              canReset={canReset}
+            />
+          </div>
+        </main>
+      </div>
+    </>
+  );
+}
+
+// ── Splash Screen ─────────────────────────────────────────────────────
+// Sequence (fully automatic, no interaction needed):
+//   'full'      — red fills viewport                          0ms
+//   'collapsed' — red shrinks to dot, name fades in below    400ms
+//   'out'       — everything fades, app revealed              2600ms
+function SplashScreen({ onDone }: { onDone: () => void }) {
+  const [phase, setPhase] = useState<'full' | 'collapsed' | 'out'>('full');
+  const cream = '#F5F0E8';
+  const DOT   = 10; // px
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setPhase('collapsed'), 400);  // start collapse
+    const t2 = setTimeout(() => setPhase('out'),       3600); // start exit
+    const t3 = setTimeout(() => onDone(),              4400); // unmount
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [onDone]);
+
+  const isFull      = phase === 'full';
+  const isCollapsed = phase === 'collapsed';
+  const isOut       = phase === 'out';
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#0A0A0A', pointerEvents: 'none' }}>
+
+      {/* Red circle — full viewport → collapses to dot at --clock-anchor */}
       <div
         style={{
-          position: 'fixed',
-          top: 'var(--space-6)',
-          right: 'var(--space-6)',
-          display: 'flex',
-          gap: 'var(--space-2)',
-          zIndex: 10,
+          position: 'absolute',
+          top: isFull ? '50%' : 'var(--clock-anchor)',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width:  isFull ? '300vmax' : `${DOT}px`,
+          height: isFull ? '300vmax' : `${DOT}px`,
+          borderRadius: '50%',
+          background: '#E8422A',
+          opacity: isOut ? 0 : 1,
+          transition: isFull
+            ? 'none'
+            : isOut
+            ? 'opacity 700ms cubic-bezier(0.16, 1, 0.3, 1)'
+            : [
+                'width  1600ms cubic-bezier(0.4, 0, 0.2, 1)',
+                'height 1600ms cubic-bezier(0.4, 0, 0.2, 1)',
+                'top 1600ms cubic-bezier(0.4, 0, 0.2, 1)',
+              ].join(', '),
         }}
-      >
-        <IconButton onClick={toggleTheme} label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
-          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-        </IconButton>
-        <IconButton onClick={openSettings} label="Open settings">
-          <SlidersIcon />
-        </IconButton>
-      </div>
-
-      {/* Settings overlay */}
-      <SettingsPanel
-        open={settingsOpen}
-        onClose={closeSettings}
-        context={context}
-        workMode={workMode}
-        cookMode={cookMode}
-        onContextChange={handleContextChange}
-        onWorkModeChange={handleWorkModeChange}
-        onCookModeChange={handleCookModeChange}
-        workDuration={pomodoro.workDuration}
-        breakDuration={pomodoro.breakDuration}
-        deepWorkRounds={deepWorkRounds}
-        onWorkDurationChange={d => pomodoro.setWorkDuration(d as WorkDuration)}
-        onBreakDurationChange={d => pomodoro.setBreakDuration(d as BreakDuration)}
-        onDeepWorkRoundsChange={setDeepWorkRounds}
-        pastaVariant={cook.pastaVariant}
-        eggVariant={cook.eggVariant}
-        sauceVariant={cook.sauceVariant}
-        onPastaVariantChange={cook.setPastaVariant}
-        onEggVariantChange={cook.setEggVariant}
-        onSauceVariantChange={cook.setSauceVariant}
-        customWorkName={customWorkName}
-        customWorkMinutes={customWorkMinutes}
-        customBreakDuration={customBreakDuration}
-        customRounds={customRounds}
-        onCustomWorkNameChange={setCustomWorkName}
-        onCustomWorkMinutesChange={setCustomWorkMinutes}
-        onCustomBreakDurationChange={setCustomBreakDuration}
-        onCustomRoundsChange={setCustomRounds}
-        customCookStages={cook.customCookStages}
-        onCustomCookStagesChange={cook.setCustomCookStages}
-        dailySessions={dailySessions}
-        weekHistory={weekHistory}
       />
 
-      {/* Main — full-viewport canvas, children pinned with absolute positions */}
-      <main
+      {/* Name — pinned 20px below the dot's resting position */}
+      <div
         style={{
-          position: 'relative',
-          minHeight: '100dvh',
-          maxWidth: 'var(--max-content-width)',
-          margin: '0 auto',
+          position: 'absolute',
+          top: 'calc(var(--clock-anchor) + 20px)',
+          left: 0,
+          right: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          opacity: isCollapsed && !isOut ? 1 : 0,
+          transition: isOut
+            ? 'opacity 500ms cubic-bezier(0.16, 1, 0.3, 1)'
+            : 'opacity 700ms 1200ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/*
-          Clock is pinned at a fixed vertical anchor (top: 38%) so it never
-          moves regardless of what's below it. The tracker and button are
-          anchored relative to the same baseline, so all three elements sit at
-          consistent positions in every mode.
-
-          Sauce/custom-multi: tracker grows downward from the same anchor,
-          the button offset is increased to give the list breathing room.
-        */}
-
-        {/* Zone A — Clock, pinned at --clock-anchor from top */}
-        <div
+        <span
           style={{
-            position: 'absolute',
-            top: 'var(--clock-anchor)',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 'var(--space-3)',
-            width: '100%',
-            padding: '0 var(--space-6)',
+            fontFamily: 'var(--font-sans)',
+            fontSize: '11px',
+            fontWeight: 500,
+            letterSpacing: '0.24em',
+            textTransform: 'uppercase',
+            color: cream,
+            userSelect: 'none',
           }}
         >
-          <ModeIndicator label={modeLabel} />
-          <TimerDisplay timeRemaining={displayTime} isPaused={!isRunning && canReset} />
-        </div>
-
-        {/* Zone B — Tracker, anchored just below clock bottom */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4))',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          {context === 'work' && workMode === 'pomodoro' && pomodoro.hasLongBreakCycle && (
-            <SessionTracker
-              sessionsCompleted={pomodoro.sessionsCompleted}
-              sessionsBeforeLongBreak={pomodoro.sessionsBeforeLongBreak}
-            />
-          )}
-          {context === 'work' && workMode === 'deep-work' && (
-            <SessionTracker
-              sessionsCompleted={pomodoro.roundsCompleted}
-              sessionsBeforeLongBreak={deepWorkRounds}
-            />
-          )}
-          {context === 'work' && workMode === 'custom' && (
-            <SessionTracker
-              sessionsCompleted={customWork.roundsCompleted}
-              sessionsBeforeLongBreak={customRounds}
-            />
-          )}
-          {context === 'cook' && cookMode === 'sauce' && (
-            <SauceTimeline
-              phases={saucePhases}
-              currentPhaseIndex={saucePhaseIndex}
-              isComplete={cook.isComplete}
-              timeRemaining={cook.timeRemaining}
-            />
-          )}
-          {context === 'cook' && cookMode === 'custom' && cook.customPhases.length > 1 && (
-            <SauceTimeline
-              phases={cook.customPhases}
-              currentPhaseIndex={cook.customPhaseIndex}
-              isComplete={cook.isComplete}
-              timeRemaining={cook.timeRemaining}
-            />
-          )}
-        </div>
-
-        {/* Zone C — Controls, pinned below tracker zone.
-            Non-sauce: half-timer + gap + 36px dots zone + gap
-            Sauce:     half-timer + gap + 88px list + gap */}
-        <div
-          style={{
-            position: 'absolute',
-            top: isSauceMode || isCustomMulti
-              ? 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4) + 88px + var(--space-8))'
-              : 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4) + 36px + var(--space-8))',
-            left: '50%',
-            transform: 'translateX(-50%)',
-          }}
-        >
-          <Controls
-            isRunning={isRunning}
-            onToggle={toggle}
-            onReset={reset}
-            canReset={canReset}
-          />
-        </div>
-      </main>
+          Pomodoro
+        </span>
+      </div>
     </div>
   );
 }
@@ -437,7 +514,7 @@ function MoonIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path
-        d="M13.5 9.5A5.5 5.5 0 016.5 2.5a5.5 5.5 0 100 11 5.5 5.5 0 007-4z"
+        d="M8 2.5A5.5 5.5 0 1 0 13.5 8 4.25 4.25 0 0 1 8 2.5Z"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"

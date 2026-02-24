@@ -41,9 +41,10 @@ interface SauceTimelineProps {
   currentPhaseIndex: number;
   isComplete: boolean;
   timeRemaining?: number; // live seconds remaining in the current phase
+  isPaused?: boolean;
 }
 
-export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemaining }: SauceTimelineProps) {
+export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemaining, isPaused = false }: SauceTimelineProps) {
   return (
     <div
       role="status"
@@ -73,7 +74,7 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
               display: 'flex',
               alignItems: 'center',
               gap: 'var(--space-3)',
-              opacity: isDone ? 0.3 : 1,
+              opacity: isDone ? 0.3 : (isActive && isPaused ? 0.35 : 1),
               transition: 'opacity var(--dur-normal) var(--ease)',
             }}
           >

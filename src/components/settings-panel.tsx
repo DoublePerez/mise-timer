@@ -512,6 +512,8 @@ export function SettingsPanel({
           right: 'var(--space-6)',
           zIndex: 30,
           width: 'min(272px, calc(100vw - 2 * var(--space-6)))',
+          maxHeight: 'calc(100dvh - var(--space-12) - var(--space-6))',
+          overflowY: 'auto',
           background: 'var(--color-surface)',
           border: 'var(--border-width) solid var(--color-border)',
           borderRadius: 'var(--radius-lg)',

@@ -86,7 +86,7 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
                 borderRadius: 'var(--radius-full)',
                 flexShrink: 0,
                 background: isActive
-                  ? 'var(--color-fg)'
+                  ? 'var(--color-accent)'
                   : isDone
                   ? 'var(--color-muted)'
                   : 'var(--color-border)',

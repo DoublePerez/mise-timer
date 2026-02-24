@@ -77,7 +77,7 @@ export function Controls({ isRunning, onToggle, onReset, canReset }: ControlsPro
           fontWeight: 500,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          padding: '12px 40px',
+          padding: '14px 48px',
           borderRadius: 'var(--radius-full)',
           border: 'none',
           cursor: 'pointer',

@@ -249,27 +249,56 @@ function App() {
         weekHistory={weekHistory}
       />
 
-      {/* Main */}
+      {/* Main — full-viewport canvas, children pinned with absolute positions */}
       <main
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          position: 'relative',
           minHeight: '100dvh',
           maxWidth: 'var(--max-content-width)',
           margin: '0 auto',
-          gap: 'var(--space-4)',
         }}
       >
-        {/* Clock */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)' }}>
+        {/*
+          Clock is pinned at a fixed vertical anchor (top: 38%) so it never
+          moves regardless of what's below it. The tracker and button are
+          anchored relative to the same baseline, so all three elements sit at
+          consistent positions in every mode.
+
+          Sauce/custom-multi: tracker grows downward from the same anchor,
+          the button offset is increased to give the list breathing room.
+        */}
+
+        {/* Zone A — Clock, pinned at --clock-anchor from top */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 'var(--clock-anchor)',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 'var(--space-3)',
+            width: '100%',
+            padding: '0 var(--space-6)',
+          }}
+        >
           <ModeIndicator label={modeLabel} />
-          <TimerDisplay timeRemaining={displayTime} />
+          <TimerDisplay timeRemaining={displayTime} isPaused={!isRunning && canReset} />
         </div>
 
-        {/* Tracker */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* Zone B — Tracker, anchored just below clock bottom */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4))',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
           {context === 'work' && workMode === 'pomodoro' && pomodoro.hasLongBreakCycle && (
             <SessionTracker
               sessionsCompleted={pomodoro.sessionsCompleted}
@@ -306,13 +335,26 @@ function App() {
           )}
         </div>
 
-        {/* Controls */}
-        <Controls
-          isRunning={isRunning}
-          onToggle={toggle}
-          onReset={reset}
-          canReset={canReset}
-        />
+        {/* Zone C — Controls, pinned below tracker zone.
+            Non-sauce: half-timer + gap + 36px dots zone + gap
+            Sauce:     half-timer + gap + 88px list + gap */}
+        <div
+          style={{
+            position: 'absolute',
+            top: isSauceMode || isCustomMulti
+              ? 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4) + 88px + var(--space-8))'
+              : 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4) + 36px + var(--space-8))',
+            left: '50%',
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <Controls
+            isRunning={isRunning}
+            onToggle={toggle}
+            onReset={reset}
+            canReset={canReset}
+          />
+        </div>
       </main>
     </div>
   );

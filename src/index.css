@@ -163,5 +163,15 @@ body {
   :root {
     --text-timer: 80px;
     --max-content-width: 100%;
+    /* On mobile the clock anchor shifts down slightly so the layout
+       feels vertically centered given the shorter viewport */
+    --clock-anchor: 40%;
+    --timer-half: 40px;
   }
+}
+
+/* Desktop default values for the clock anchor vars */
+:root {
+  --clock-anchor: 38%;
+  --timer-half: 56px;
 }

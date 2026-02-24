@@ -275,20 +275,19 @@ function App() {
           <TimerDisplay timeRemaining={displayTime} />
         </div>
 
-        {/* Below-clock zone — tracker + controls, anchored below center */}
+        {/* Tracker zone — floats above the button, grows upward */}
         <div
           style={{
             position: 'absolute',
-            top: 'calc(50% + 120px)',
+            top: 'calc(50% + 80px)',
             left: '50%',
             transform: 'translateX(-50%)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 'var(--space-6)',
+            gap: 'var(--space-4)',
           }}
         >
-          {/* Tracker zone */}
           {context === 'work' && workMode === 'pomodoro' && pomodoro.hasLongBreakCycle && (
             <SessionTracker
               sessionsCompleted={pomodoro.sessionsCompleted}
@@ -323,8 +322,17 @@ function App() {
               timeRemaining={cook.timeRemaining}
             />
           )}
+        </div>
 
-          {/* Controls */}
+        {/* Controls — always pinned at fixed position */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(50% + 160px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+          }}
+        >
           <Controls
             isRunning={isRunning}
             onToggle={toggle}

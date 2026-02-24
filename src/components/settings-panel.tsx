@@ -52,18 +52,23 @@ interface SettingsPanelProps {
 }
 
 // ── Info tooltip — (i) icon that reveals a hover popover ─────────────
+// Uses position:fixed so it escapes the panel's overflowY:auto clip
 function InfoTooltip({ lines }: { lines: string[] }) {
-  const [visible, setVisible] = useState(false);
+  const [rect, setRect] = useState<DOMRect | null>(null);
   const ref = useRef<HTMLSpanElement>(null);
+
+  function show() {
+    if (ref.current) setRect(ref.current.getBoundingClientRect());
+  }
+  function hide() { setRect(null); }
 
   return (
     <span
       ref={ref}
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
+      onMouseEnter={show}
+      onMouseLeave={hide}
     >
-      {/* The (i) glyph */}
       <span
         aria-label="More info"
         style={{
@@ -79,15 +84,15 @@ function InfoTooltip({ lines }: { lines: string[] }) {
         ⓘ
       </span>
 
-      {/* Popover */}
-      {visible && (
+      {rect && (
         <span
           role="tooltip"
           style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: 'calc(100% + 6px)',
-            transform: 'translateX(-50%)',
+            position: 'fixed',
+            // Sit above the icon, centered on it
+            left: rect.left + rect.width / 2,
+            top: rect.top - 6,
+            transform: 'translate(-50%, -100%)',
             background: 'var(--color-surface-raised)',
             border: 'var(--border-width) solid var(--color-border)',
             borderRadius: 'var(--radius-md)',
@@ -96,10 +101,9 @@ function InfoTooltip({ lines }: { lines: string[] }) {
             display: 'flex',
             flexDirection: 'column',
             gap: 'var(--space-1)',
-            zIndex: 50,
+            zIndex: 9000,
             pointerEvents: 'none',
             whiteSpace: 'nowrap',
-            minWidth: 120,
           }}
         >
           {lines.map((line, i) => (

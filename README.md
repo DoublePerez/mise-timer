@@ -1,16 +1,16 @@
-# Misse
+# Mise
 
 A focus timer and kitchen timer that share one interface. The idea is simple: the same minimal clock that tracks your work sessions should also tell you when your pasta is done.
 
 No backend, no accounts, no installs. Runs entirely in the browser.
 
-![Misse](public/og-image.png)
+![Mise](public/og-image.png)
 
 ---
 
 ## Overview
 
-Most focus timer apps are either too bare (no real customization) or too bloated (accounts, dashboards, gamification). Misse sits in the middle. Structured enough to work out of the box, flexible enough to adapt to your workflow.
+Most focus timer apps are either too bare (no real customization) or too bloated (accounts, dashboards, gamification). Mise sits in the middle. Structured enough to work out of the box, flexible enough to adapt to your workflow.
 
 The kitchen timer started from a small but real frustration: having one timer for deep work and another one for cooking breaks your flow. In both cases you’re just running a timer, so they should live in the same place.
 

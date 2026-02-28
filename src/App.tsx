@@ -394,7 +394,7 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
             userSelect: 'none',
           }}
         >
-          misse
+          mise
         </span>
       </div>
     </div>

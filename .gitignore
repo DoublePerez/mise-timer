@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project prompts — private
+*.PROMPT.md
+.POMODORO-PROJECT-PROMPT.md
+POMODORO-PROJECT-PROMPT.md

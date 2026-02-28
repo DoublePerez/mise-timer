@@ -4,7 +4,7 @@ import { DEFAULT_DEEP_WORK_ROUNDS, PASTA_VARIANTS, EGG_VARIANTS } from '@/lib/co
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { useKeyboard } from '@/hooks/use-keyboard';
 import { useAlarm } from '@/hooks/use-alarm';
-import { getNarrativeLabel } from '@/lib/narrative';
+
 import { usePomodoro, useCustomWorkTimer } from '@/hooks/use-pomodoro';
 import { useCookTimer } from '@/hooks/use-cook-timer';
 import { TimerDisplay } from '@/components/timer-display';
@@ -102,19 +102,20 @@ function App() {
   // CSS accent driven by data-mode attribute
   const dataMode = context === 'work' ? (workMode === 'custom' ? customWork.currentMode : pomodoro.currentMode) : 'work';
 
-  // Narrative label — escalates with daily sessions, shown during work phase only
-  const narrativeLabel = getNarrativeLabel(dailySessions);
-  const narrativeSuffix = dailySessions > 0 ? ` · ${dailySessions}` : '';
-
   // Label above the timer
   const modeLabel = (() => {
     if (context === 'work') {
       if (workMode === 'custom')
-        return customWork.currentMode === 'break' ? 'Break' : `${customWorkName}${narrativeSuffix}`;
+        return customWork.currentMode === 'break' ? 'Break' : customWorkName;
       if (pomodoro.currentMode === 'break')
         return pomodoro.breakKind === 'long' ? 'Long Break' : 'Break';
-      if (workMode === 'deep-work') return `Deep Work${narrativeSuffix}`;
-      return `${narrativeLabel}${narrativeSuffix}`;
+      if (workMode === 'deep-work') {
+        const total = pomodoro.sessionsBeforeLongBreak ?? deepWorkRounds;
+        return `Deep Work · ${pomodoro.sessionsCompleted + 1} / ${total}`;
+      }
+      // pomodoro
+      const total = pomodoro.sessionsBeforeLongBreak ?? 4;
+      return `Pomodoro · ${pomodoro.sessionsCompleted + 1} / ${total}`;
     }
     // Cook — show variant-specific label
     if (cookMode === 'pasta') {
@@ -286,7 +287,7 @@ function App() {
           <div
             style={{
               position: 'absolute',
-              top: 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4))',
+              top: 'calc(var(--clock-anchor) + var(--timer-half) + var(--tracker-gap))',
               left: '50%',
               transform: 'translateX(-50%)',
               display: 'flex',
@@ -337,8 +338,8 @@ function App() {
             style={{
               position: 'absolute',
               top: isSauceMode || isCustomMulti
-                ? 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4) + 88px + var(--space-8))'
-                : 'calc(var(--clock-anchor) + var(--timer-half) + var(--space-4) + 36px + var(--space-8))',
+                ? 'calc(var(--clock-anchor) + var(--timer-half) + var(--tracker-gap) + 88px + var(--space-8))'
+                : 'calc(var(--clock-anchor) + var(--timer-half) + var(--tracker-gap) + 36px + var(--space-8))',
               left: '50%',
               transform: 'translateX(-50%)',
             }}
@@ -357,80 +358,46 @@ function App() {
 }
 
 // ── Splash Screen ─────────────────────────────────────────────────────
-// Sequence (fully automatic, no interaction needed):
-//   'full'      — red fills viewport                          0ms
-//   'collapsed' — red shrinks to dot, name fades in below    400ms
-//   'out'       — everything fades, app revealed              2600ms
+// Sequence (fully automatic):
+//   'in'  — name fades in at center                          0ms
+//   'out' — name fades out, app revealed                    1800ms
 function SplashScreen({ onDone }: { onDone: () => void }) {
-  const [phase, setPhase] = useState<'full' | 'collapsed' | 'out'>('full');
-  const cream = '#F5F0E8';
-  const DOT   = 10; // px
+  const [phase, setPhase] = useState<'in' | 'out'>('in');
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase('collapsed'), 400);  // start collapse
-    const t2 = setTimeout(() => setPhase('out'),       3600); // start exit
-    const t3 = setTimeout(() => onDone(),              4400); // unmount
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    const t1 = setTimeout(() => setPhase('out'), 1800);
+    const t2 = setTimeout(() => onDone(),        2500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [onDone]);
 
-  const isFull      = phase === 'full';
-  const isCollapsed = phase === 'collapsed';
-  const isOut       = phase === 'out';
+  const isOut = phase === 'out';
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#0A0A0A', pointerEvents: 'none' }}>
-
-      {/* Red circle — full viewport → collapses to dot at --clock-anchor */}
       <div
         style={{
           position: 'absolute',
-          top: isFull ? '50%' : 'var(--clock-anchor)',
+          top: 'var(--clock-anchor)',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width:  isFull ? '300vmax' : `${DOT}px`,
-          height: isFull ? '300vmax' : `${DOT}px`,
-          borderRadius: '50%',
-          background: '#E8422A',
           opacity: isOut ? 0 : 1,
-          transition: isFull
-            ? 'none'
-            : isOut
-            ? 'opacity 700ms cubic-bezier(0.16, 1, 0.3, 1)'
-            : [
-                'width  1600ms cubic-bezier(0.4, 0, 0.2, 1)',
-                'height 1600ms cubic-bezier(0.4, 0, 0.2, 1)',
-                'top 1600ms cubic-bezier(0.4, 0, 0.2, 1)',
-              ].join(', '),
-        }}
-      />
-
-      {/* Name — pinned 20px below the dot's resting position */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 'calc(var(--clock-anchor) + 20px)',
-          left: 0,
-          right: 0,
-          display: 'flex',
-          justifyContent: 'center',
-          opacity: isCollapsed && !isOut ? 1 : 0,
           transition: isOut
             ? 'opacity 500ms cubic-bezier(0.16, 1, 0.3, 1)'
-            : 'opacity 700ms 1200ms cubic-bezier(0.16, 1, 0.3, 1)',
+            : 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         <span
           style={{
             fontFamily: 'var(--font-sans)',
-            fontSize: '11px',
-            fontWeight: 500,
-            letterSpacing: '0.24em',
-            textTransform: 'uppercase',
-            color: cream,
+            fontSize: 'var(--text-timer)',
+            fontWeight: 700,
+            letterSpacing: '-0.03em',
+            lineHeight: 1,
+            color: '#F0F0F0',
             userSelect: 'none',
           }}
         >
-          Pomodoro
+          misse
         </span>
       </div>
     </div>

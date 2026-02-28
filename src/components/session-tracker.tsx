@@ -22,7 +22,7 @@ export function SessionTracker({ sessionsCompleted, sessionsBeforeLongBreak }: S
             width: 5,
             height: 5,
             borderRadius: 'var(--radius-full)',
-            background: i < sessionsCompleted ? 'var(--color-fg)' : 'var(--color-border)',
+            background: i < sessionsCompleted ? 'var(--color-work)' : 'var(--color-border)',
             transition: 'background var(--dur-normal) var(--ease)',
             display: 'block',
           }}
@@ -54,10 +54,11 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
           : `Step ${currentPhaseIndex + 1}: ${phases[currentPhaseIndex]?.label}`
       }
       style={{
-        display: 'inline-flex',
+        display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
         gap: 'var(--space-2)',
+        width: 'fit-content',
       }}
     >
       {phases.map((phase, i) => {
@@ -74,6 +75,7 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
               display: 'flex',
               alignItems: 'center',
               gap: 'var(--space-3)',
+              width: '100%',
               opacity: isDone ? 0.3 : (isActive && isPaused ? 0.35 : 1),
               transition: 'opacity var(--dur-normal) var(--ease)',
             }}
@@ -118,6 +120,8 @@ export function SauceTimeline({ phases, currentPhaseIndex, isComplete, timeRemai
                 color: isActive ? 'var(--color-muted-strong)' : 'var(--color-border)',
                 fontVariantNumeric: 'tabular-nums',
                 transition: 'color var(--dur-normal) var(--ease)',
+                marginLeft: 'auto',
+                paddingLeft: 'var(--space-4)',
               }}
             >
               {displayTime}

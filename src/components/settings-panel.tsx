@@ -819,8 +819,8 @@ function Dashboard({ dailySessions, weekHistory }: { dailySessions: number; week
               key={i}
               aria-hidden="true"
               style={{
-                width: 8,
-                height: 8,
+                width: 6,
+                height: 6,
                 borderRadius: 'var(--radius-full)',
                 background: 'var(--color-accent)',
                 display: 'inline-block',
@@ -843,9 +843,7 @@ function Dashboard({ dailySessions, weekHistory }: { dailySessions: number; week
                 width: '100%',
                 height: barH,
                 borderRadius: 2,
-                background: isToday
-                  ? (count > 0 ? 'var(--color-accent)' : 'var(--color-border)')
-                  : (count > 0 ? 'var(--color-muted)' : 'var(--color-border)'),
+                background: count > 0 ? 'var(--color-work)' : 'var(--color-border)',
                 opacity: isToday ? 1 : 0.6,
                 transition: 'height var(--dur-normal) var(--ease)',
               }} />

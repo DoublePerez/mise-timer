@@ -9,7 +9,7 @@ export function TimerDisplay({ timeRemaining, isPaused = false }: TimerDisplayPr
   return (
     <div
       style={{
-        fontFamily: 'var(--font-mono)',
+        fontFamily: 'var(--font-sans)',
         fontSize: 'var(--text-timer)',
         lineHeight: 'var(--leading-timer)',
         letterSpacing: 'var(--tracking-timer)',

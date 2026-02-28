@@ -801,33 +801,46 @@ function Dashboard({ dailySessions, weekHistory }: { dailySessions: number; week
         Today
       </span>
 
-      {/* Tomato circles — today's sessions */}
-      <div style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap', minHeight: 12 }}>
-        {dailySessions === 0 ? (
-          <span style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 'var(--text-xs)',
-            color: 'var(--color-border)',
-            letterSpacing: 'var(--tracking)',
-            lineHeight: 1,
-          }}>
-            No sessions yet
-          </span>
-        ) : (
-          Array.from({ length: dailySessions }).map((_, i) => (
-            <span
-              key={i}
-              aria-hidden="true"
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 'var(--radius-full)',
-                background: 'var(--color-accent)',
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
-            />
-          ))
+      {/* Today's count — number + capped dot row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+        <span style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 'var(--text-xl)',
+          fontWeight: 700,
+          letterSpacing: '-0.03em',
+          lineHeight: 1,
+          color: dailySessions === 0 ? 'var(--color-border)' : 'var(--color-fg)',
+        }}>
+          {dailySessions}
+        </span>
+        {dailySessions > 0 && (
+          <div style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap', alignItems: 'center' }}>
+            {Array.from({ length: Math.min(dailySessions, 8) }).map((_, i) => (
+              <span
+                key={i}
+                aria-hidden="true"
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: 'var(--radius-full)',
+                  background: 'var(--color-work)',
+                  display: 'inline-block',
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+            {dailySessions > 8 && (
+              <span style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--color-muted)',
+                letterSpacing: 'var(--tracking)',
+                lineHeight: 1,
+              }}>
+                +{dailySessions - 8}
+              </span>
+            )}
+          </div>
         )}
       </div>
 

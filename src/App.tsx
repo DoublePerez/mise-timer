@@ -362,15 +362,14 @@ function App() {
 //   'in'  — name fades in at center                          0ms
 //   'out' — name fades out, app revealed                    1800ms
 function SplashScreen({ onDone }: { onDone: () => void }) {
-  const [phase, setPhase] = useState<'in' | 'out'>('in');
+  const [phase, setPhase] = useState<'hidden' | 'in' | 'out'>('hidden');
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase('out'), 1800);
-    const t2 = setTimeout(() => onDone(),        2500);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const t0 = setTimeout(() => setPhase('in'),  50);
+    const t1 = setTimeout(() => setPhase('out'), 1600);
+    const t2 = setTimeout(() => onDone(),        2300);
+    return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); };
   }, [onDone]);
-
-  const isOut = phase === 'out';
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#0A0A0A', pointerEvents: 'none' }}>
@@ -380,10 +379,8 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
           top: 'var(--clock-anchor)',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          opacity: isOut ? 0 : 1,
-          transition: isOut
-            ? 'opacity 500ms cubic-bezier(0.16, 1, 0.3, 1)'
-            : 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)',
+          opacity: phase === 'in' ? 1 : 0,
+          transition: 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         <span

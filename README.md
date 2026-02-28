@@ -1,6 +1,6 @@
 # Mise
 
-A focus timer and kitchen timer that share one interface. The idea is simple: the same minimal clock that tracks your work sessions should also tell you when your pasta is done.
+A double timer for focus and cooking, in one place. The idea is simple: the same minimal clock that tracks your work sessions should also tell you when your pasta is done.
 
 No backend, no accounts, no installs. Runs entirely in the browser.
 

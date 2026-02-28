@@ -181,4 +181,4 @@ Dieter Rams: good design is as little design as possible. Every element earns it
 
 ## License
 
-Private. All rights reserved.
+© 2026 Double Perez. All rights reserved.

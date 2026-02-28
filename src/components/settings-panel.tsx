@@ -54,13 +54,16 @@ interface SettingsPanelProps {
 // ── Info tooltip — (i) icon that reveals a hover popover ─────────────
 // Uses position:fixed so it escapes the panel's overflowY:auto clip
 function InfoTooltip({ lines }: { lines: string[] }) {
-  const [rect, setRect] = useState<DOMRect | null>(null);
+  const [tip, setTip] = useState<{ rect: DOMRect; openDown: boolean } | null>(null);
   const ref = useRef<HTMLSpanElement>(null);
 
   function show() {
-    if (ref.current) setRect(ref.current.getBoundingClientRect());
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setTip({ rect: r, openDown: r.top < window.innerHeight / 2 });
+    }
   }
-  function hide() { setRect(null); }
+  function hide() { setTip(null); }
 
   return (
     <span
@@ -74,7 +77,7 @@ function InfoTooltip({ lines }: { lines: string[] }) {
         style={{
           fontFamily: 'var(--font-sans)',
           fontSize: 'var(--text-xs)',
-          color: 'var(--color-muted)',
+          color: 'var(--color-border)',
           lineHeight: 1,
           cursor: 'default',
           userSelect: 'none',
@@ -84,15 +87,15 @@ function InfoTooltip({ lines }: { lines: string[] }) {
         ⓘ
       </span>
 
-      {rect && (
+      {tip && (
         <span
           role="tooltip"
           style={{
             position: 'fixed',
-            // Sit above the icon, centered on it
-            left: rect.left + rect.width / 2,
-            top: rect.top - 6,
-            transform: 'translate(-50%, -100%)',
+            left: tip.rect.left + tip.rect.width / 2,
+            ...(tip.openDown
+              ? { top: tip.rect.bottom + 6, transform: 'translateX(-50%)' }
+              : { top: tip.rect.top - 6,    transform: 'translate(-50%, -100%)' }),
             background: 'var(--color-surface-raised)',
             border: 'var(--border-width) solid var(--color-border)',
             borderRadius: 'var(--radius-md)',
@@ -530,18 +533,25 @@ export function SettingsPanel({
       >
         {/* Header row: SETTINGS + X */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 'var(--text-xs)',
-            fontWeight: 400,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--color-border)',
-            lineHeight: 1,
-            userSelect: 'none',
-          }}>
-            Settings
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <span style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 'var(--text-xs)',
+              fontWeight: 400,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--color-border)',
+              lineHeight: 1,
+              userSelect: 'none',
+            }}>
+              Settings
+            </span>
+            <InfoTooltip lines={[
+              'Work deep. Cook well.',
+              'Pomodoro, Deep Work, and Cook modes.',
+              'Runs entirely in the browser.',
+            ]} />
+          </div>
           <button
             onClick={onClose}
             aria-label="Close settings"

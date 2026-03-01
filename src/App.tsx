@@ -110,12 +110,9 @@ function App() {
       if (pomodoro.currentMode === 'break')
         return pomodoro.breakKind === 'long' ? 'Long Break' : 'Break';
       if (workMode === 'deep-work') {
-        const total = pomodoro.sessionsBeforeLongBreak ?? deepWorkRounds;
-        return `Deep Work · ${pomodoro.sessionsCompleted + 1} / ${total}`;
+        return 'Deep Work';
       }
-      // pomodoro
-      const total = pomodoro.sessionsBeforeLongBreak ?? 4;
-      return `Pomodoro · ${pomodoro.sessionsCompleted + 1} / ${total}`;
+      return 'Pomodoro';
     }
     // Cook — show variant-specific label
     if (cookMode === 'pasta') {

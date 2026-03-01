@@ -8,11 +8,13 @@ export function ModeIndicator({ label }: ModeIndicatorProps) {
       style={{
         fontFamily: 'var(--font-sans)',
         fontSize: 'var(--text-xs)',
-        fontWeight: 400,
+        fontWeight: 500,
         letterSpacing: '0.12em',
         textTransform: 'uppercase',
         color: 'var(--color-muted)',
         lineHeight: 1,
+        fontVariantNumeric: 'tabular-nums',
+        fontFeatureSettings: '"tnum"',
         transition: 'color var(--dur-slow) var(--ease)',
         userSelect: 'none',
       }}
